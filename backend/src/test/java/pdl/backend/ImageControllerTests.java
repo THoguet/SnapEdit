@@ -57,7 +57,7 @@ public class ImageControllerTests {
 	@Test
 	@Order(4)
 	public void deleteImagesShouldReturnMethodNotAllowed() throws Exception {
-	this.mockMvc.perform(delete("/images")).andDo(print()).andExpect(status().isMethodNotAllowed());
+		this.mockMvc.perform(delete("/images")).andDo(print()).andExpect(status().isMethodNotAllowed());
 	}
 
 	@Test
@@ -76,7 +76,8 @@ public class ImageControllerTests {
 	@Order(7)
 	public void createImageShouldReturnSuccess() throws Exception {
 		final ClassPathResource imgFile = new ClassPathResource("test.jpg");
-		MockMultipartFile multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", imgFile.getInputStream());
+		MockMultipartFile multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg",
+				imgFile.getInputStream());
 		this.mockMvc.perform(MockMvcRequestBuilders.multipart("/images").file(multipartFile)).andDo(print())
 				.andExpect(status().isOk());
 	}
