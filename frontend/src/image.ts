@@ -1,4 +1,4 @@
 export interface ImageType {
-  id: number;
-  name: string;
+	id: number;
+	name: string;
 }

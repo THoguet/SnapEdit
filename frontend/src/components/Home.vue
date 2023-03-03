@@ -9,28 +9,27 @@ const imageList = ref<ImageType[]>([]);
 getImageList();
 
 function getImageList() {
-  api.getImageList().then((data) => {
-    imageList.value = data;
-  }).catch(e => {
-    console.log(e.message);
-  });
+	api.getImageList().then((data) => {
+		imageList.value = data;
+	}).catch(e => {
+		console.log(e.message);
+	});
 }
 
 function showImage() {
-  router.push({ name: 'image', params: { id: selectedId.value } })
+	router.push({ name: 'image', params: { id: selectedId.value } })
 }
 </script>
 
 <template>
-  <div>
-    <h3>Choose an image</h3>
-    <div>
-      <select v-model="selectedId" @change="showImage">
-        <option v-for="image in imageList" :value="image.id" :key="image.id">{{ image.name }}</option>
-      </select>
-    </div>
-  </div>
+	<div>
+		<h3>Choose an image</h3>
+		<div>
+			<select v-model="selectedId" @change="showImage">
+				<option v-for="image in imageList" :value="image.id" :key="image.id">{{ image.name }}</option>
+			</select>
+		</div>
+	</div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

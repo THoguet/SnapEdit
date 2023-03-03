@@ -7,20 +7,19 @@ import Image from './Image.vue';
 const imageList = ref<ImageType[]>([]);
 
 api.getImageList()
-  .then((data) => {
-    imageList.value = data;
-  })
-  .catch(e => {
-    console.log(e.message);
-  });
+	.then((data) => {
+		imageList.value = data;
+	})
+	.catch(e => {
+		console.log(e.message);
+	});
 </script>
 
 <template>
-  <div>
-    <h3>Gallery</h3>
-    <Image v-for="image in imageList" :id="image.id" />
-  </div>
+	<div>
+		<h3>Gallery</h3>
+		<Image v-for="image in imageList" :id="image.id" />
+	</div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
