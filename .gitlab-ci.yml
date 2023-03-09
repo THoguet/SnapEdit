@@ -2,10 +2,10 @@ variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
-cache:
-  paths:
-    - .m2/repository/
-    - frontend/node_modules/
+# cache:
+#   paths:
+#     - .m2/repository/
+#     - frontend/node_modules/
 
 build_job:
   stage: build
@@ -15,11 +15,11 @@ build_job:
     - mvn $MAVEN_CLI_OPTS compile
   artifacts:
     expire_in: 10 min
-    paths: 
+    paths:
       - target/
       - "*/target"
   tags:
-      - shell
+    - shell
 
 test_job:
   stage: test
@@ -29,7 +29,7 @@ test_job:
     - find . -name "*.class" -exec touch {} \+
     - mvn $MAVEN_CLI_OPTS test
   tags:
-      - shell
+    - shell
 
 ### cleanup project for security issues
 cleanup:
@@ -39,4 +39,4 @@ cleanup:
     - cd ; tree -d -L 5
   when: always
   tags:
-      - shell
+    - shell
