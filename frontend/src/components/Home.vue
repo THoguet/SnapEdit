@@ -1,35 +1,62 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-import router from "@/router";
-import { api } from '@/http-api';
-import { ImageType } from '@/image'
-
-const selectedId = ref(-1);
-const imageList = ref<ImageType[]>([]);
-getImageList();
-
-function getImageList() {
-	api.getImageList().then((data) => {
-		imageList.value = data;
-	}).catch(e => {
-		console.log(e.message);
-	});
-}
-
-function showImage() {
-	router.push({ name: 'image', params: { id: selectedId.value } })
-}
-</script>
-
 <template>
-	<div>
-		<h3>Choose an image</h3>
+	<div class="flex" v-if="images.keys != null">
 		<div>
-			<select v-model="selectedId" @change="showImage">
-				<option v-for="image in imageList" :value="image.id" :key="image.id">{{ image.name }}</option>
+			<select v-model="imageSelectedId" style="width: min-content;margin: 15px;">
+				<option v-for="[id, image] in images" :key="id" :value="id">{{ image.name }}</option>
 			</select>
+			<button @click="$emit('delete', imageSelectedId)">Delete</button>
 		</div>
+		<Image :id="imageSelectedId"></Image>
 	</div>
+	<h1 v-else>No images found</h1>
 </template>
+<script setup lang="ts">
+import Image from '@/components/Image.vue'
+import { defineComponent } from 'vue'
+import { ImageType } from '@/image'
+</script>
+<script lang="ts">
+export default defineComponent({
+	emits: {
+		delete(id: number) {
+			return id >= 0;
+		}
+	},
+	props: {
+		images: {
+			type: Map<number, ImageType>,
+			required: true
+		}
+	},
+	data() {
+		return {
+			imageSelectedId: 0 as number
+		}
+	},
+	mounted() {
+		this.imageSelectedId = this.images.keys().next().value;
+		console.log(this.imageSelectedId);
+	},
+	watch: {
+		images() {
+			this.imageSelectedId = this.images.keys().next().value;
+			console.log(this.imageSelectedId);
+		},
+		imageSelectedId() {
+			console.log(this.imageSelectedId);
+		}
+	}
+})
+</script>
+<style scoped>
+.flex {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
 
-<style scoped></style>
+img {
+	max-width: 90%;
+	max-height: 60%;
+}
+</style>

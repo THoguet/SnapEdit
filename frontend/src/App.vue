@@ -1,60 +1,111 @@
-<script setup lang="ts">
-</script>
-
 <template>
-	<div id="app">
-		<nav>
-			<ul>
-				<li>
-					<router-link to="/">Home</router-link>
-				</li>
-				<li>
-					<router-link to="/gallery">Gallery</router-link>
-				</li>
-				<li>
-					<router-link to="/upload">Upload</router-link>
-				</li>
-			</ul>
-		</nav>
-
-		<div>
-			<h1>PDL - L3</h1>
-			<router-view />
-		</div>
+	<div v-for="route in routes" class="button">
+		<a :href="'#' + (routes[route] || '/')"> {{ route }}</a>
 	</div>
+	<div>
+		<label>Files
+			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" />
+		</label>
+		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Sent' : 'Submit' }}</button>
+	</div>
+	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile" />
 </template>
-
-<style>
-#app {
+<script setup lang="ts">
+import Home from './components/Home.vue'
+import Gallery from './components/Gallery.vue';
+import NotFound from './components/NotFound.vue'
+import { defineComponent } from 'vue'
+import { api } from './http-api'
+import { ImageType, ImageClass } from './image';
+</script>
+<script lang="ts">
+const routes: { [key: string]: string } = {
+	'/': "Home",
+	'Gallery': "Gallery"
+}
+interface InputFileEvent extends Event {
+	target: HTMLInputElement;
+}
+export default defineComponent({
+	components: {
+		Home,
+		Gallery,
+		NotFound
+	},
+	data() {
+		return {
+			images: new Map<Number, ImageType>(),
+			currentPath: window.location.hash,
+			sent: false,
+			file: null as FileList | null
+		}
+	},
+	computed: {
+		currentView(): string {
+			return routes[this.currentPath.slice(1) || '/'] || "notFound";
+		}
+	},
+	methods: {
+		async submitImage() {
+			if (this.sent == true || this.file == null)
+				return;
+			let formData = new FormData();
+			formData.append('file', this.file[0]);
+			await api.createImage(formData);
+			this.sent = true;
+			(document.getElementById('fileUpload') as HTMLInputElement).value = "";
+			this.updateImageList(100);
+		},
+		handleFilesUpload(event: InputFileEvent) {
+			this.file = event.target.files;
+			this.sent = false;
+		},
+		async updateImageList(sleep: number) {
+			setTimeout(() => {
+				api.getImageList().then((newImages) => {
+					const newImageList = new Map<number, ImageType>();
+					for (const image of newImages.values()) {
+						newImageList.set(image.id, image);
+					}
+					this.images = newImageList; console.log(this.images);
+				})
+			}, sleep);
+		},
+		deleteFile(id: number) {
+			api.deleteImage(id).then(() => {
+				this.updateImageList(100);
+			})
+		}
+	},
+	mounted() {
+		this.updateImageList(0);
+		window.addEventListener('hashchange', () => {
+			this.currentPath = window.location.hash;
+		});
+	}
+})
+</script>
+<style scoped>
+.button {
+	display: inline-block;
+	color: #444;
+	border: 1px solid #CCC;
+	background: #DDD;
+	box-shadow: 0 0 5px -1px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	vertical-align: middle;
+	max-width: 100px;
+	padding: 5px;
 	text-align: center;
-	font-family: Arial, Helvetica, sans-serif;
-	color: #2c3e50;
+	margin: 5px;
 }
 
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #333;
-}
-
-li {
-	float: left;
-}
-
-li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-.error {
+.button:active {
 	color: red;
-	font-weight: bold;
-	list-style-type: none;
-	margin-top: 1em;
+	box-shadow: 0 0 5px -1px rgba(0, 0, 0, 0.6);
+}
+
+.green {
+	color: green;
 }
 </style>

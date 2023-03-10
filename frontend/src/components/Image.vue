@@ -1,31 +1,42 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { defineComponent } from 'vue';
 import { api } from '@/http-api';
-
-const props = defineProps<{ id: number }>()
-
-api.getImage(props.id)
-	.then((data: Blob) => {
-		const reader = new window.FileReader();
-		reader.readAsDataURL(data);
-		reader.onload = () => {
-			const galleryElt = document.getElementById("gallery-" + props.id);
-			if (galleryElt !== null) {
-				const imgElt = document.createElement("img");
-				galleryElt.appendChild(imgElt);
-				if (imgElt !== null && reader.result as string) {
-					imgElt.setAttribute("src", (reader.result as string));
-				}
-			}
-		};
-	})
-	.catch(e => {
-		console.log(e.message);
-	});
 </script>
-
+<script lang="ts">
+export default defineComponent({
+	props: {
+		id: {
+			type: Number,
+			required: true
+		}
+	},
+	methods: {
+		async getImage(id: number) {
+			const data = await api.getImage(id);
+			const reader = new window.FileReader();
+			reader.readAsDataURL(data);
+			reader.onload = () => {
+				const imgElt = document.getElementById("img-" + id) as HTMLImageElement;
+				if (imgElt !== null) {
+					if (reader.result as string) {
+						imgElt.setAttribute("src", (reader.result as string));
+					}
+				}
+			};
+		}
+	},
+	mounted() {
+		this.getImage(this.id);
+	},
+	watch: {
+		id() {
+			this.getImage(this.id);
+		}
+	}
+})
+</script>
 <template>
-	<figure :id="'gallery-' + id"></figure>
+	<img :id="'img-' + id" />
 </template>
 
 <style></style>
