@@ -23,15 +23,10 @@ export default defineComponent({
 	},
 	mounted() {
 		this.imageSelectedId = this.images.keys().next().value;
-		console.log(this.imageSelectedId);
 	},
 	watch: {
 		images() {
 			this.imageSelectedId = this.images.keys().next().value;
-			console.log(this.imageSelectedId);
-		},
-		imageSelectedId() {
-			console.log(this.imageSelectedId);
 		}
 	}
 })
@@ -44,7 +39,7 @@ export default defineComponent({
 			</select>
 			<button @click="$emit('delete', imageSelectedId)">Delete</button>
 		</div>
-		<Image :id="imageSelectedId"></Image>
+		<Image v-if="imageSelectedId !== undefined" :id="imageSelectedId"></Image>
 	</div>
 	<h1 v-else>No images found</h1>
 </template>
