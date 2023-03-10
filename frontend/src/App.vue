@@ -1,21 +1,9 @@
-<template>
-	<div v-for="route in routes" class="button">
-		<a :href="'#' + (routes[route] || '/')"> {{ route }}</a>
-	</div>
-	<div>
-		<label>Files
-			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" />
-		</label>
-		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Sent' : 'Submit' }}</button>
-	</div>
-	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile" />
-</template>
 <script setup lang="ts">
 import Home from './components/Home.vue'
 import Gallery from './components/Gallery.vue';
 import NotFound from './components/NotFound.vue'
 import { defineComponent } from 'vue'
-import { api } from './http-api'
+import { api } from '@/http-api'
 import { ImageType, ImageClass } from './image';
 </script>
 <script lang="ts">
@@ -85,6 +73,18 @@ export default defineComponent({
 	}
 })
 </script>
+<template>
+	<div v-for="route in routes" class="button">
+		<a :href="'#' + (routes[route] || '/')"> {{ route }}</a>
+	</div>
+	<div>
+		<label>Files
+			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" />
+		</label>
+		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Sent' : 'Submit' }}</button>
+	</div>
+	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile" />
+</template>
 <style scoped>
 .button {
 	display: inline-block;

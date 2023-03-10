@@ -1,9 +1,3 @@
-<template>
-	<div class="flex" v-if="images.keys != null">
-		<Image v-for="[id, image] in images" :key="id" :id="id" />
-	</div>
-	<h1 v-else>No image found</h1>
-</template>
 <script setup lang="ts">
 import { defineComponent } from 'vue'
 import { ImageType } from '@/image'
@@ -21,6 +15,12 @@ export default defineComponent({
 })
 </script>
 
+<template>
+	<div class="flex" v-if="images.keys != null">
+		<Image v-for="[id, image] in images" :key="id" :id="id" />
+	</div>
+	<h1 v-else>No image found</h1>
+</template>
 <style scoped>
 .flex {
 	display: flex;

@@ -1,15 +1,3 @@
-<template>
-	<div class="flex" v-if="images.keys != null">
-		<div>
-			<select v-model="imageSelectedId" style="width: min-content;margin: 15px;">
-				<option v-for="[id, image] in images" :key="id" :value="id">{{ image.name }}</option>
-			</select>
-			<button @click="$emit('delete', imageSelectedId)">Delete</button>
-		</div>
-		<Image :id="imageSelectedId"></Image>
-	</div>
-	<h1 v-else>No images found</h1>
-</template>
 <script setup lang="ts">
 import Image from '@/components/Image.vue'
 import { defineComponent } from 'vue'
@@ -48,6 +36,18 @@ export default defineComponent({
 	}
 })
 </script>
+<template>
+	<div class="flex" v-if="images.keys != null">
+		<div>
+			<select v-model="imageSelectedId" style="width: min-content;margin: 15px;">
+				<option v-for="[id, image] in images" :key="id" :value="id">{{ image.name }}</option>
+			</select>
+			<button @click="$emit('delete', imageSelectedId)">Delete</button>
+		</div>
+		<Image :id="imageSelectedId"></Image>
+	</div>
+	<h1 v-else>No images found</h1>
+</template>
 <style scoped>
 .flex {
 	display: flex;
