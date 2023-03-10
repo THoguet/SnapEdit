@@ -16,7 +16,7 @@ export default defineComponent({
 </script>
 
 <template>
-	<div class="flex" v-if="images.keys != null">
+	<div class="flex" v-if="images.keys !== null">
 		<Image v-for="[id, image] in images" :key="id" :id="id" />
 	</div>
 	<h1 v-else>No image found</h1>
