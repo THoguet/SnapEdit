@@ -25,33 +25,26 @@ public class ImageDao implements Dao<Image> {
         } catch (final Exception e) {
             e.printStackTrace();
         }
-        System.out.println("IMAGEEEEEEEEEEEEEEs");
-        for (Image img : retrieveAll()) {
-            System.out.println(img.getName());
-        }
-        System.out.println("ENNNNNNNNNNNNNNd");
-
     }
 
     public void getAllImages(final File folder) {
-        for (final File fileEntry : folder.listFiles()) {
-            if (fileEntry.isDirectory()) {
-                getAllImages(fileEntry);
+        for (final File file : folder.listFiles()) {
+            if (file.isDirectory()) {
+                getAllImages(file);
             } else {
-                final ClassPathResource imgFile = new ClassPathResource(fileEntry.getName());
                 String extension = "";
 
-                int i = fileEntry.getName().lastIndexOf('.');
+                int i = file.getName().lastIndexOf('.');
                 if (i > 0) {
-                    extension = fileEntry.getName().substring(i + 1);
+                    extension = file.getName().substring(i + 1);
                 }
-                if (!extension.equals("jpg") && !extension.equals("pgn")) {
+                if (!extension.equals("jpg") && !extension.equals("png")) {
                     continue;
                 }
                 byte[] fileContent;
                 try {
-                    fileContent = Files.readAllBytes(imgFile.getFile().toPath());
-                    Image img = new Image(imgFile.getFilename(), fileContent);
+                    fileContent = Files.readAllBytes(file.toPath());
+                    Image img = new Image(file.getName(), fileContent);
                     images.put(img.getId(), img);
                 } catch (final IOException e) {
                     e.printStackTrace();
