@@ -2,6 +2,7 @@
 import Home from './components/Home.vue'
 import Gallery from './components/Gallery.vue';
 import NotFound from './components/NotFound.vue'
+import Upload from './components/Upload.vue'
 import { defineComponent } from 'vue'
 import { api } from '@/http-api'
 import { ImageType, ImageClass } from './image';
@@ -9,16 +10,15 @@ import { ImageType, ImageClass } from './image';
 <script lang="ts">
 const routes: { [key: string]: string } = {
 	'/': "Home",
-	'Gallery': "Gallery"
-}
-interface InputFileEvent extends Event {
-	target: HTMLInputElement;
+	'Gallery': "Gallery",
+	'Upload': "Upload"
 }
 export default defineComponent({
 	components: {
 		Home,
 		Gallery,
-		NotFound
+		NotFound,
+		Upload
 	},
 	data() {
 		return {
@@ -34,28 +34,13 @@ export default defineComponent({
 		}
 	},
 	methods: {
-		async submitImage() {
-			if (this.sent == true || this.file == null)
-				return;
-			let formData = new FormData();
-			formData.append('file', this.file[0]);
-			await api.createImage(formData);
-			this.sent = true;
-			(document.getElementById('fileUpload') as HTMLInputElement).value = "";
-			this.updateImageList(100);
-		},
-		handleFilesUpload(event: InputFileEvent) {
-			this.file = event.target.files;
-			this.sent = false;
-		},
 		async updateImageList(sleep: number) {
 			setTimeout(() => {
 				api.getImageList().then((newImages) => {
 					const newImageList = new Map<number, ImageType>();
-					for (const image of newImages.values()) {
+					for (const image of newImages.values())
 						newImageList.set(image.id, image);
-					}
-					this.images = newImageList; console.log(this.images);
+					this.images = newImageList;
 				})
 			}, sleep);
 		},
@@ -63,6 +48,14 @@ export default defineComponent({
 			api.deleteImage(id).then(() => {
 				this.updateImageList(100);
 			})
+		},
+		isActive(route: string) {
+			if (route === undefined) {
+				if (this.currentPath === "")
+					return 'router active';
+				route = "/";
+			}
+			return this.currentPath.endsWith(route) ? 'router active' : 'router';
 		}
 	},
 	mounted() {
@@ -74,38 +67,79 @@ export default defineComponent({
 })
 </script>
 <template>
-	<div v-for="route in routes" class="button">
-		<a :href="'#' + (routes[route] || '/')"> {{ route }}</a>
-	</div>
-	<div>
-		<label>Files
-			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" />
-		</label>
-		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Sent' : 'Submit' }}</button>
-	</div>
-	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile" />
+	<header>
+		<div class="navi">
+			<nav>
+				<ul>
+					<li v-for="route in routes" :class="isActive(routes[route])">
+						<a :href="'#' + (routes[route] || '/')"> <span>{{ route }}</span></a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile"
+		@updateImageList="updateImageList(100)" />
 </template>
 <style scoped>
-.button {
-	display: inline-block;
-	color: #444;
-	border: 1px solid #CCC;
-	background: #DDD;
-	box-shadow: 0 0 5px -1px rgba(0, 0, 0, 0.2);
-	cursor: pointer;
-	vertical-align: middle;
-	max-width: 100px;
-	padding: 5px;
-	text-align: center;
-	margin: 5px;
+.navi {
+	/* reduce size of children */
+	display: flex;
+	flex-direction: row-reverse;
 }
 
-.button:active {
-	color: red;
-	box-shadow: 0 0 5px -1px rgba(0, 0, 0, 0.6);
+header {
+	display: block;
+	position: fixed;
+	padding-top: 30px;
+	top: 0;
+	left: 0;
+	right: 0;
+	box-sizing: content-box !important;
 }
 
-.green {
-	color: green;
+ul>li+li {
+	margin-left: 30px;
+}
+
+ul>li {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 5px 15px;
+	border-radius: 60px;
+}
+
+.active {
+	background-color: #12EACB;
+}
+
+.active>a {
+	color: rgb(205, 201, 194);
+}
+
+a {
+	color: rgb(172, 165, 154);
+	text-decoration-color: initial;
+	font-family: "Aeonik", sans-serif;
+}
+
+nav {
+	display: flex;
+	justify-content: center;
+	padding-left: 20px;
+	height: 60px;
+	padding-right: 20px;
+	border-radius: 60px;
+	background-color: rgb(24, 26, 27);
+	margin-right: 20px;
+}
+
+
+ul {
+	display: flex;
+	list-style: none;
+	padding-inline-start: 0;
 }
 </style>
