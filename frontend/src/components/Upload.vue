@@ -30,9 +30,12 @@ export default defineComponent({
 		async submitImage() {
 			if (this.sent === true || this.file === null)
 				return;
-			let formData = new FormData();
-			formData.append('file', this.file[0]);
-			await api.createImage(formData);
+			Array.from(this.file).forEach((file, id) => {
+
+				let formData = new FormData();
+				formData.append('file', file);
+				api.createImage(formData);
+			});
 			this.sent = true;
 			this.$emit('updateImageList');
 			this.resetFile();
@@ -69,12 +72,12 @@ export default defineComponent({
 </script>
 <template>
 	<div>
-		<label>Files
+		<label>Ajouter une ou plusieurs image(s):
 			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" accept="image/jpeg"
 				multiple />
 		</label>
-		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Sent' : 'Submit' }}</button>
-		<button v-if="file !== null" @click="resetFile()">Reset</button>
+		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Envoyé' : 'Envoyer' }}</button>
+		<button v-if="file !== null" @click="resetFile()">Reinitialiser</button>
 	</div>
 	<h2 v-if="file !== null">Preview :</h2>
 	<div class="previewBox">
@@ -88,6 +91,18 @@ img {
 	max-width: 100%;
 	max-height: 90%;
 	border: 1px solid black;
+}
+
+label {
+	color: white;
+}
+
+input {
+	color: white;
+}
+
+h2 {
+	color: white;
 }
 
 .imageLabel {
