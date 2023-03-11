@@ -87,6 +87,8 @@ public class ImageController {
 			ObjectNode objectNode = mapper.createObjectNode();
 			objectNode.put("id", image.getId());
 			objectNode.put("name", image.getName());
+			objectNode.put("size", image.getSize());
+			objectNode.put("type", image.getMediaType().toString());
 			nodes.add(objectNode);
 		}
 		return nodes;
