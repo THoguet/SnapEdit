@@ -74,7 +74,7 @@ label {
 }
 
 img {
-	max-width: 90%;
+	max-width: 60%;
 	max-height: 60%;
 }
 </style>
