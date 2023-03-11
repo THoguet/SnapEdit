@@ -8,7 +8,6 @@ import java.net.URLConnection;
 import javax.imageio.ImageIO;
 
 import org.springframework.http.MediaType;
-import org.springframework.util.MimeType;
 
 public class Image {
 	private static Long count = Long.valueOf(0);
