@@ -18,7 +18,8 @@ export default defineComponent({
 	},
 	data() {
 		return {
-			imageSelectedId: 0 as number
+			imageSelectedId: 0 as number,
+			sure: false as boolean
 		}
 	},
 	mounted() {
@@ -27,6 +28,17 @@ export default defineComponent({
 	watch: {
 		images() {
 			this.imageSelectedId = this.images.keys().next().value;
+		},
+		imageSelectedId() {
+			this.sure = false;
+		}
+	},
+	methods: {
+		confirmDelete() {
+			if (this.sure)
+				this.$emit('delete', this.imageSelectedId);
+			else
+				this.sure = true;
 		}
 	}
 })
@@ -34,10 +46,12 @@ export default defineComponent({
 <template>
 	<div class="flex" v-if="images.keys != null">
 		<div>
+			<label>Selectioner une image: </label>
 			<select v-model="imageSelectedId" style="width: min-content;margin: 15px;">
 				<option v-for="[id, image] in images" :key="id" :value="id">{{ image.name }}</option>
 			</select>
-			<button @click="$emit('delete', imageSelectedId)">Delete</button>
+			<button @click="confirmDelete()" :class="sure ? 'confirm' : ''">
+				{{ sure ? "Confirmer" : "Supprimer" }}</button>
 		</div>
 		<Image v-if="imageSelectedId !== undefined" :id="imageSelectedId"></Image>
 	</div>
@@ -48,6 +62,15 @@ export default defineComponent({
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+}
+
+.confirm {
+	background-color: red;
+	color: white;
+}
+
+label {
+	color: white;
 }
 
 img {
