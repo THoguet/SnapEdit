@@ -55,7 +55,7 @@ export default defineComponent({
 		</div>
 		<Image v-if="imageSelectedId !== undefined" :id="imageSelectedId"></Image>
 	</div>
-	<h1 v-else>No images found</h1>
+	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
 .flex {
