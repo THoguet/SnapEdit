@@ -15,9 +15,10 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +38,7 @@ public class ImageController {
 		this.imageDao = imageDao;
 	}
 
-	@RequestMapping(value = "/images/{id}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
+	@GetMapping(value = "/images/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public ResponseEntity<?> getImage(@PathVariable("id") long id) {
 
 		Optional<Image> image = imageDao.retrieve(id);
@@ -49,7 +50,7 @@ public class ImageController {
 		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
 	}
 
-	@RequestMapping(value = "/images/{id}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/images/{id}")
 	public ResponseEntity<?> deleteImage(@PathVariable("id") long id) {
 
 		Optional<Image> image = imageDao.retrieve(id);
@@ -61,7 +62,7 @@ public class ImageController {
 		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
 	}
 
-	@RequestMapping(value = "/images", method = RequestMethod.POST)
+	@PostMapping(value = "/images")
 	public ResponseEntity<?> addImage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
 
 		String contentType = file.getContentType();
@@ -77,7 +78,7 @@ public class ImageController {
 		return new ResponseEntity<>("Image uploaded", HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/images", method = RequestMethod.GET, produces = "application/json")
+	@GetMapping(value = "/images", produces = "application/json")
 	@ResponseBody
 	public ArrayNode getImageList() {
 		List<Image> images = imageDao.retrieveAll();
