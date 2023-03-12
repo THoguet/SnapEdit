@@ -47,6 +47,13 @@ export default defineComponent({
 		resetFile() {
 			this.file = null;
 			(document.getElementById('fileUpload') as HTMLInputElement).value = "";
+		},
+		titleSendButton() {
+			if (this.sent === true)
+				return "Envoyé";
+			if (this.file === null)
+				return "Aucune image sélectionnée";
+			return "Envoyer (" + this.file.length + " image(s) sélectionnée(s))";
 		}
 	},
 	watch: {
@@ -76,7 +83,7 @@ export default defineComponent({
 			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" accept="image/jpeg"
 				multiple />
 		</label>
-		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ sent ? 'Envoyé' : 'Envoyer' }}</button>
+		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ titleSendButton() }}</button>
 		<button v-if="file !== null" @click="resetFile()">Reinitialiser</button>
 	</div>
 	<h2 v-if="file !== null">Preview :</h2>
@@ -121,5 +128,10 @@ h2 {
 	align-items: center;
 	justify-content: space-evenly;
 	flex-wrap: wrap;
+}
+
+.green {
+	color: green;
+	font-weight: bold;
 }
 </style>
