@@ -50,10 +50,10 @@ export default defineComponent({
 			<select v-model="imageSelectedId" style="width: min-content;margin: 15px;">
 				<option v-for="[id, image] in images" :key="id" :value="id">{{ image.name }}</option>
 			</select>
-			<button @click="confirmDelete()" :class="sure ? 'confirm' : ''">
+			<button @mouseleave="sure = false" @click="confirmDelete()" :class="sure ? 'confirm' : ''">
 				{{ sure ? "Confirmer" : "Supprimer" }}</button>
 		</div>
-		<Image v-if="imageSelectedId !== undefined" :id="imageSelectedId"></Image>
+		<Image class="home" v-if="imageSelectedId !== undefined" :id="imageSelectedId"></Image>
 	</div>
 	<h1 v-else>Aucune image trouvée</h1>
 </template>
@@ -72,9 +72,10 @@ export default defineComponent({
 label {
 	color: white;
 }
-
-img {
+</style>
+<style>
+.home>img {
 	max-width: 60%;
-	max-height: 60%;
+	max-height: 60vh;
 }
 </style>
