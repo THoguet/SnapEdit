@@ -45,7 +45,7 @@ public class ImageControllerTests {
     @Test
     @Order(2)
     public void getImageShouldReturnNotFound() throws Exception {
-        this.mockMvc.perform(get("/images/1")).andDo(print()).andExpect(status().isNotFound());
+        this.mockMvc.perform(get("/images/1000")).andDo(print()).andExpect(status().isNotFound());
     }
 
     @Test
