@@ -36,7 +36,14 @@ export default defineComponent({
 })
 </script>
 <template>
-	<img :id="'img-' + id" />
+	<a :href="'./images/' + id" target="_blank">
+		<img :id="'img-' + id" />
+	</a>
 </template>
 
-<style></style>
+<style scoped>
+img:hover {
+	transform: scale(1.1);
+	transition: transform 0.5s;
+}
+</style>
