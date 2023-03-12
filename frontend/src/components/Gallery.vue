@@ -17,7 +17,10 @@ export default defineComponent({
 
 <template>
 	<div class="flex" v-if="images.keys !== null">
-		<Image v-for="[id, image] in images" :key="id" :id="id" />
+		<div v-for="[id, image] in images" :key="id" class="image">
+			<label>{{ image.name }}</label>
+			<Image class="gallery" :id="id" />
+		</div>
 	</div>
 	<h1 v-else>No image found</h1>
 </template>
@@ -30,12 +33,23 @@ export default defineComponent({
 	flex-wrap: wrap;
 }
 
-.flex>img {
-	margin: 5px;
+.image {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
-img {
-	max-width: 25%;
-	max-height: 25%;
+label {
+	font-size: 1.5em;
+	color: white;
+}
+</style>
+<style>
+.gallery>img {
+	margin: 5px;
+	max-width: max(33vw, calc(90vw/v-bind('images.size')));
+	max-height: max(33vh, calc(90vh/v-bind('images.size')));
+	margin: 2vw;
 }
 </style>
