@@ -86,6 +86,7 @@ export default defineComponent({
 	/* reduce size of children */
 	display: flex;
 	flex-direction: row-reverse;
+	pointer-events: none;
 }
 
 header {
@@ -95,7 +96,7 @@ header {
 	top: 0;
 	left: 0;
 	right: 0;
-	box-sizing: content-box !important;
+	pointer-events: none;
 }
 
 ul>li+li {
@@ -134,6 +135,7 @@ nav {
 	border-radius: 60px;
 	background-color: rgb(24, 26, 27);
 	margin-right: 20px;
+	pointer-events: auto;
 }
 
 
