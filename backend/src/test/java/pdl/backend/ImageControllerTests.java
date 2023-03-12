@@ -63,7 +63,7 @@ public class ImageControllerTests {
     @Test
     @Order(5)
     public void deleteImageShouldReturnNotFound() throws Exception {
-        this.mockMvc.perform(delete("/images/1")).andDo(print()).andExpect(status().isNotFound());
+        this.mockMvc.perform(delete("/images/1000")).andDo(print()).andExpect(status().isNotFound());
     }
 
     @Test
