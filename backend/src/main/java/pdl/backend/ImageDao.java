@@ -24,7 +24,7 @@ public class ImageDao implements Dao<Image> {
 
 	public ImageDao(ClassPathResource folderPath) throws IOException {
 		if (!folderPath.exists())
-			throw new ImageResourceMissingException("folder images doesn't not exsit");
+			throw new ImageResourceMissingException("folder images doesn't not exist");
 		final var folder = folderPath.getFile();
 		getAllImages(folder);
 	}
