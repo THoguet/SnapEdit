@@ -7,13 +7,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class BackendApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
+	@Test
+	void contextLoads() {
+	}
 
-    @Test
-    @Order(1)
-    public void appLaunchShouldReturnError() throws Exception {
+	@Test
+	@Order(1)
+	public void appLaunchShouldReturnError() throws Exception {
 
-    }
+	}
 }
