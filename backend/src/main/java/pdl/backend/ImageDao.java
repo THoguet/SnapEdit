@@ -1,5 +1,6 @@
 package pdl.backend;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -15,44 +16,68 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ImageDao implements Dao<Image> {
 
-	private final Map<Long, Image> images = new HashMap<>();
+    private final Map<Long, Image> images = new HashMap<>();
 
-	public ImageDao() {
-		final ClassPathResource imgFile = new ClassPathResource("test.jpg");
-		byte[] fileContent;
-		try {
-			fileContent = Files.readAllBytes(imgFile.getFile().toPath());
-			Image img = new Image("test.jpg", fileContent);
-			images.put(img.getId(), img);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
-	}
+    public ImageDao() {
+        try {
+            final var folderPath = new ClassPathResource("images");
+            final var folder = folderPath.getFile();
+            getAllImages(folder);
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	@Override
-	public Optional<Image> retrieve(final long id) {
-		return Optional.ofNullable(images.get(id));
-	}
+    public void getAllImages(final File folder) {
+        for (final File file : folder.listFiles()) {
+            if (file.isDirectory()) {
+                getAllImages(file);
+            } else {
+                String extension = "";
 
-	@Override
-	public List<Image> retrieveAll() {
-		return new ArrayList<Image>(images.values());
-	}
+                int i = file.getName().lastIndexOf('.');
+                if (i > 0) {
+                    extension = file.getName().substring(i + 1);
+                }
+                if (!extension.equals("jpg") && !extension.equals("png")) {
+                    continue;
+                }
+                byte[] fileContent;
+                try {
+                    fileContent = Files.readAllBytes(file.toPath());
+                    Image img = new Image(file.getName(), fileContent);
+                    images.put(img.getId(), img);
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
-	@Override
-	public void create(final Image img) {
-		images.put(img.getId(), img);
-	}
+    @Override
+    public Optional<Image> retrieve(final long id) {
+        return Optional.ofNullable(images.get(id));
+    }
 
-	@Override
-	public void update(final Image img, final String[] params) {
-		img.setName(Objects.requireNonNull(params[0], "Name cannot be null"));
+    @Override
+    public List<Image> retrieveAll() {
+        return new ArrayList<Image>(images.values());
+    }
 
-		images.put(img.getId(), img);
-	}
+    @Override
+    public void create(final Image img) {
+        images.put(img.getId(), img);
+    }
 
-	@Override
-	public void delete(final Image img) {
-		images.remove(img.getId());
-	}
+    @Override
+    public void update(final Image img, final String[] params) {
+        img.setName(Objects.requireNonNull(params[0], "Name cannot be null"));
+
+        images.put(img.getId(), img);
+    }
+
+    @Override
+    public void delete(final Image img) {
+        images.remove(img.getId());
+    }
 }
