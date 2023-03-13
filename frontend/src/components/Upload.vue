@@ -1,40 +1,137 @@
+
 <script setup lang="ts">
-import { ref } from 'vue';
+
+import { defineComponent } from 'vue';
 import { api } from '@/http-api';
+import { ImageType, ImageClass } from '@/image';
 
-const target = ref<HTMLInputElement>();
-
-function submitFile() {
-	if (target.value !== null && target.value !== undefined && target.value.files !== null) {
-		const file = target.value.files[0];
-		if (file === undefined)
-			return;
-		let formData = new FormData();
-		formData.append("file", file);
-		api.createImage(formData).then(() => {
-			if (target.value !== undefined)
-				target.value.value = '';
-		}).catch(e => {
-			console.log(e.message);
-		});
-	}
-}
-
-function handleFileUpload(event: Event) {
-	target.value = (event.target as HTMLInputElement);
-}
 </script>
+<script lang="ts">
 
+interface InputFileEvent extends Event {
+	target: HTMLInputElement;
+}
+
+export default defineComponent({
+	emits: ['updateImageList', 'delete'],
+	data() {
+		return {
+			sent: false,
+			file: null as FileList | null
+		}
+	},
+	props: {
+		images: {
+			type: Map<number, ImageType>,
+			required: true
+		}
+	},
+	methods: {
+		async submitImage() {
+			if (this.sent === true || this.file === null)
+				return;
+			Array.from(this.file).forEach((file, id) => {
+
+				let formData = new FormData();
+				formData.append('file', file);
+				api.createImage(formData);
+			});
+			this.sent = true;
+			this.$emit('updateImageList');
+			this.resetFile();
+		},
+		handleFilesUpload(event: InputFileEvent) {
+			this.file = event.target.files;
+			this.sent = false;
+		},
+		resetFile() {
+			this.file = null;
+			(document.getElementById('fileUpload') as HTMLInputElement).value = "";
+		},
+		titleSendButton() {
+			if (this.sent === true)
+				return "Envoyé";
+			if (this.file === null)
+				return "Aucune image sélectionnée";
+			return "Envoyer (" + this.file.length + " image(s) sélectionnée(s))";
+		}
+	},
+	watch: {
+		file() {
+			if (this.file === null)
+				return;
+			Array.from(this.file).forEach((file, id) => {
+				const reader = new window.FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => {
+					const imgElt = document.getElementById("preview-" + id) as HTMLImageElement;
+					if (imgElt !== null) {
+						if (reader.result as string) {
+							imgElt.setAttribute("src", (reader.result as string));
+						}
+					}
+				};
+			});
+		}
+	}
+})
+
+</script>
 <template>
 	<div>
-		<h3>Upload an image</h3>
-		<div>
-			<input type="file" id="file" ref="file" @change="handleFileUpload" />
-		</div>
-		<div>
-			<button @click="submitFile">Submit</button>
-		</div>
+		<label>Ajouter une ou plusieurs image(s):
+			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" accept="image/jpeg"
+				multiple />
+		</label>
+		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ titleSendButton() }}</button>
+		<button v-if="file !== null" @click="resetFile()">Reinitialiser</button>
+	</div>
+	<h2 v-if="file !== null">Preview :</h2>
+	<div class="previewBox">
+		<label v-for="(f, id) in (file as FileList)" :key="id" class="imageLabel">{{ (f as File).name }}:
+			<img :id="'preview-' + id" />
+		</label>
 	</div>
 </template>
+<style scoped>
+img {
+	max-width: 100%;
+	max-height: 90%;
+	border: 1px solid black;
+}
 
-<style scoped></style>
+label {
+	color: white;
+}
+
+input {
+	color: white;
+}
+
+h2 {
+	color: white;
+}
+
+.imageLabel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	max-width: 33%;
+	height: 33vh;
+	margin: 5px;
+}
+
+.previewBox {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-evenly;
+	flex-wrap: wrap;
+}
+
+.green {
+	color: green;
+	font-weight: bold;
+}
+</style>
