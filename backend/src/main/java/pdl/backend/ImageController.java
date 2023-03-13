@@ -65,16 +65,15 @@ public class ImageController {
     public ResponseEntity<?> addImage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
 
         String contentType = file.getContentType();
-        if (!contentType.equals(MediaType.IMAGE_JPEG.toString())) {
+        if (contentType != null && !contentType.equals(MediaType.IMAGE_JPEG.toString())) {
             return new ResponseEntity<>("Only JPEG file format supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         }
-
         try {
             imageDao.create(new Image(file.getOriginalFilename(), file.getBytes()));
         } catch (IOException e) {
             return new ResponseEntity<>("Failure to read file", HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<>("Image uploaded", HttpStatus.OK);
+        return new ResponseEntity<>("Image uploaded", HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/images", produces = "application/json")

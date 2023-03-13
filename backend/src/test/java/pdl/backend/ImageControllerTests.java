@@ -75,11 +75,11 @@ public class ImageControllerTests {
     @Test
     @Order(7)
     public void createImageShouldReturnSuccess() throws Exception {
-        final ClassPathResource imgFile = new ClassPathResource("test.jpg");
+        final ClassPathResource imgFile = new ClassPathResource("images/test.jpg");
         MockMultipartFile multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg",
                 imgFile.getInputStream());
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/images").file(multipartFile)).andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test

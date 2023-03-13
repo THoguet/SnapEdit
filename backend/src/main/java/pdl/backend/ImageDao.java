@@ -19,7 +19,7 @@ public class ImageDao implements Dao<Image> {
 
     public ImageDao() {
         try {
-            final File folder = new File("backend/src/main/resources/images");
+            final File folder = new File("images");
             getAllImages(folder);
         } catch (final Exception e) {
             e.printStackTrace();
