@@ -66,7 +66,7 @@ public class ImageController {
 
 		String contentType = file.getContentType();
 		if (contentType != null && !contentType.equals(MediaType.IMAGE_JPEG.toString())) {
-			return new ResponseEntity<>("Only JPEG file format supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			return new ResponseEntity<>("Only JPEG/PNG file format supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 		}
 		try {
 			imageDao.create(new Image(file.getOriginalFilename(), file.getBytes()));
