@@ -18,16 +18,15 @@ public class ImageDao implements Dao<Image> {
 
 	private final Map<Long, Image> images = new HashMap<>();
 
-	public ImageDao() {
-		try {
-			final var folderPath = new ClassPathResource("images");
-			if (!folderPath.exists())
-				throw new ImageResourceMissingException("folder images doesn't not exsit");
-			final var folder = folderPath.getFile();
-			getAllImages(folder);
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+	public ImageDao() throws IOException {
+		this(new ClassPathResource("images"));
+	}
+
+	public ImageDao(ClassPathResource folderPath) throws IOException {
+		if (!folderPath.exists())
+			throw new ImageResourceMissingException("folder images doesn't not exsit");
+		final var folder = folderPath.getFile();
+		getAllImages(folder);
 	}
 
 	public void getAllImages(final File folder) {
