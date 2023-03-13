@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -19,7 +20,8 @@ public class ImageDao implements Dao<Image> {
 
     public ImageDao() {
         try {
-            final File folder = new File("backend/src/main/resources/images");
+            final var folderPath = new ClassPathResource("images");
+            final var folder = folderPath.getFile();
             getAllImages(folder);
         } catch (final Exception e) {
             e.printStackTrace();
