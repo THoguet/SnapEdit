@@ -16,8 +16,9 @@ export default defineComponent({
 	emits: ['updateImageList', 'delete'],
 	data() {
 		return {
-			sent: false,
-			file: null as FileList | null
+			file: null as FileList | null,
+			titleSendButton: "Envoyer",
+			classSendButton: ""
 		}
 	},
 	props: {
@@ -28,32 +29,48 @@ export default defineComponent({
 	},
 	methods: {
 		async submitImage() {
-			if (this.sent === true || this.file === null)
+			if (this.classSendButton === "sent") {
+				this.titleSendButton = "Images déjà envoyées"
+				this.classSendButton = "error"
 				return;
+			}
+			if (this.file === null || this.file.length === 0) {
+				this.titleSendButton = "Aucune image sélectionnée"
+				this.classSendButton = "error"
+				return;
+			}
 			Array.from(this.file).forEach((file, id) => {
 
 				let formData = new FormData();
 				formData.append('file', file);
 				api.createImage(formData);
 			});
-			this.sent = true;
 			this.$emit('updateImageList');
 			this.resetFile();
+			this.titleSendButton = "Envoyé"
+			this.classSendButton = "sent"
 		},
 		handleFilesUpload(event: InputFileEvent) {
 			this.file = event.target.files;
-			this.sent = false;
+			this.resetSendButton(true)
+
 		},
 		resetFile() {
 			this.file = null;
 			(document.getElementById('fileUpload') as HTMLInputElement).value = "";
 		},
-		titleSendButton() {
-			if (this.sent === true)
-				return "Envoyé";
-			if (this.file === null)
+		nameLabelInput() {
+			if (this.file === null || this.file.length === 0)
 				return "Aucune image sélectionnée";
-			return "Envoyer (" + this.file.length + " image(s) sélectionnée(s))";
+			if (this.file.length === 1)
+				return this.file[0].name;
+			return this.file.length + " images sélectionnées";
+		},
+		resetSendButton(force: boolean = false) {
+			if (force || this.classSendButton === "error") {
+				this.titleSendButton = "Envoyer"
+				this.classSendButton = ""
+			}
 		}
 	},
 	watch: {
@@ -78,15 +95,18 @@ export default defineComponent({
 
 </script>
 <template>
-	<div>
-		<label>Ajouter une ou plusieurs image(s):
-			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" accept="image/jpeg"
-				multiple />
-		</label>
-		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ titleSendButton() }}</button>
-		<button v-if="file !== null" @click="resetFile()">Reinitialiser</button>
+	<div class="form">
+		<div class="inputform" for="fileUpload">
+			<input style="position: absolute; left: -9999px; opacity: 0;" class="fileUpload" id="fileUpload" type="file"
+				@change="handleFilesUpload($event as InputFileEvent)" accept="image/png, image/jpeg" multiple />
+			<label class="button" for="fileUpload" id="labelInput">Choisir une ou plusieurs image(s)...</label>
+			<label class="filename button" for="fileUpload">{{ nameLabelInput() }}</label>
+		</div>
+		<button class="button" :class="classSendButton" @click="submitImage()" @mouseleave="resetSendButton()">{{
+			titleSendButton }}</button>
+		<button class="button" v-if="file !== null && file.length !== 0" @click="resetFile()">Reinitialiser</button>
 	</div>
-	<h2 v-if="file !== null">Preview :</h2>
+	<h2 v-if="file !== null && file.length !== 0">Preview :</h2>
 	<div class="previewBox">
 		<label v-for="(f, id) in (file as FileList)" :key="id" class="imageLabel">{{ (f as File).name }}:
 			<img :id="'preview-' + id" />
@@ -97,19 +117,44 @@ export default defineComponent({
 img {
 	max-width: 100%;
 	max-height: 90%;
-	border: 1px solid black;
+}
+
+.form {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-evenly;
+	gap: 20px;
 }
 
 label {
 	color: white;
 }
 
-input {
-	color: white;
-}
 
 h2 {
 	color: white;
+}
+
+.fileUpload:focus~label,
+.fileUpload:focus-visible~label {
+	outline: 4px auto -webkit-focus-ring-color;
+}
+
+.filename {
+	background-color: white;
+	color: black;
+	border: 1px solid rgb(255, 0, 98);
+	border-radius: 0 8px 8px 0;
+}
+
+#labelInput {
+	border-radius: 8px 0 0 8px;
+	background-color: rgb(255, 0, 98);
+}
+
+.inputform:hover label {
+	border-color: #646cff;
 }
 
 .imageLabel {
@@ -130,7 +175,12 @@ h2 {
 	flex-wrap: wrap;
 }
 
-.green {
+.error {
+	color: red;
+	font-weight: bold;
+}
+
+.sent {
 	color: green;
 	font-weight: bold;
 }
