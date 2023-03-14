@@ -94,13 +94,16 @@ public class ImageController {
 		return nodes;
 	}
 
-	@GetMapping(value = "/images/{id}?algorithm={X}&p1=Y&p2=Z")
-	public ResponseEntity<?> appl(@PathVariable("id") long id) {
+	@GetMapping(value = "/images/{id}?algorithm={X}&p1={Y}&p2={Z}", produces = MediaType.IMAGE_JPEG_VALUE || MediaType.IMAGE_PNG_VALUE)
+	public ResponseEntity<?> applyAlgorithm(@PathVariable("id") long id, @PathVariable("X") string algorithm, @PathVariable("Y") int firstParam, @PathVariable("Z") int secondParam) {
 
 		Optional<Image> image = imageDao.retrieve(id);
-
 		if (image.isPresent()) {
-			InputStream inputStream = new ByteArrayInputStream(image.get().getData());
+			if (algorithm.equals("changeLuminosity")){
+				Optional<Image> changedImage = createSameShape(image);
+				ImageProcessing.changeLuminosity(changedImage, firstParam);
+			}
+			InputStream inputStream = new ByteArrayInputStream(changedImage.get().getData());
 			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(new InputStreamResource(inputStream));
 		}
 		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
