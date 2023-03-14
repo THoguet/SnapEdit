@@ -36,9 +36,11 @@ export default defineComponent({
 })
 </script>
 <template>
-	<a :href="'./images/' + id" target="_blank">
-		<img :id="'img-' + id" />
-	</a>
+	<div>
+		<a :href="'./images/' + id" target="_blank">
+			<img :id="'img-' + id" />
+		</a>
+	</div>
 </template>
 
 <style scoped>

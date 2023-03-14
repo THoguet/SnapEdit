@@ -74,7 +74,7 @@ label {
 }
 </style>
 <style>
-.home>img {
+.home img {
 	max-width: 60%;
 	max-height: 60vh;
 }
