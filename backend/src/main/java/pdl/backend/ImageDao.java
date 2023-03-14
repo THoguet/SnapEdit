@@ -16,21 +16,23 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ImageDao implements Dao<Image> {
 
+	private final static String[] ACCEPTED_EXTENSION = { "jpg", "png", "jpeg" };
+
 	private final Map<Long, Image> images = new HashMap<>();
 
-	public ImageDao() {
-		try {
-			final var folderPath = new ClassPathResource("images");
-			if (!folderPath.exists())
-				throw new ImageResourceMissingException("folder images doesn't not exsit");
-			final var folder = folderPath.getFile();
-			getAllImages(folder);
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+	public ImageDao() throws IOException {
+		this("images");
 	}
 
-	public void getAllImages(final File folder) {
+	public ImageDao(final String folderPathStr) throws IOException {
+		final var folderPath = new ClassPathResource(folderPathStr);
+		if (!folderPath.exists())
+			throw new ImageResourceMissingException("folder images doesn't not exist");
+		final var folder = folderPath.getFile();
+		getAllImages(folder);
+	}
+
+	private void getAllImages(final File folder) {
 		for (final File file : folder.listFiles()) {
 			if (file.isDirectory()) {
 				getAllImages(file);
@@ -41,7 +43,14 @@ public class ImageDao implements Dao<Image> {
 				if (i > 0) {
 					extension = file.getName().substring(i + 1);
 				}
-				if (!extension.equals("jpg") && !extension.equals("png")) {
+				boolean accepted = false;
+				for (final String ext : ACCEPTED_EXTENSION) {
+					if (ext.equals(extension)) {
+						accepted = true;
+						break;
+					}
+				}
+				if (!accepted) {
 					continue;
 				}
 				byte[] fileContent;
