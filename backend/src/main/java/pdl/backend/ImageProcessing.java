@@ -1,10 +1,6 @@
 package pdl.backend;
 
-import java.awt.image.BufferedImage;
-import boofcv.io.image.UtilImageIO;
-import boofcv.io.image.ConvertBufferedImage;
 import boofcv.struct.image.GrayU8;
-import boofcv.struct.border.BorderType;
 import boofcv.struct.image.Planar;
 
 public class ImageProcessing {
@@ -13,9 +9,9 @@ public class ImageProcessing {
      * 
      * Retourne les valeurs r, g et b d'un pixel d'une image placés en paramètres
      * 
-     * @param input L'image 
-     * @param x La ligne
-     * @param y La colonne
+     * @param input L'image
+     * @param x     La ligne
+     * @param y     La colonne
      */
     public static int[] getRGBValue(Planar<GrayU8> input, int x, int y) {
         int[] rgb = new int[3];
@@ -29,10 +25,10 @@ public class ImageProcessing {
      * 
      * Colore le pixel donné de l'image donnée avec les valeurs rgb données
      * 
-     * @param input L'image 
-     * @param x La ligne
-     * @param y La colonne
-     * @param rgb Tableau de taille 3 avec les valeurs de r, g, et b 
+     * @param input L'image
+     * @param x     La ligne
+     * @param y     La colonne
+     * @param rgb   Tableau de taille 3 avec les valeurs de r, g, et b
      */
     public static void setRGBValue(Planar<GrayU8> input, int x, int y, int[] rgb) {
         for (int i = 0; i < rgb.length; i++) {
@@ -126,7 +122,6 @@ public class ImageProcessing {
             }
         }
     }
-
 
     /**
      * 
@@ -249,7 +244,7 @@ public class ImageProcessing {
             for (int x = 0; x < input.width; x++) {
                 if (y < half || x < half || y >= input.height - half || x >= input.width - half) {
                     int gl = inputGray.getBand(0).get(x, y);
-                    int[] rgb = {gl,gl,gl};
+                    int[] rgb = { gl, gl, gl };
                     setRGBValue(output, x, y, rgb);
                     continue;
                 }
@@ -271,14 +266,11 @@ public class ImageProcessing {
                     value = 0;
                 if (value > 255)
                     value = 255;
-                int[] rgb = {value, value, value};
+                int[] rgb = { value, value, value };
                 setRGBValue(output, x, y, rgb);
             }
         }
     }
-
-
-
 
     /**
      * Applique un filtre moyenneur de taille indiquée à l'image
@@ -286,7 +278,7 @@ public class ImageProcessing {
      * 
      * @param input  image d'entrée
      * @param output image de sortie
-     * @param size taille du filtre à appliquer
+     * @param size   taille du filtre à appliquer
      */
     public static void meanFilter(Planar<GrayU8> input, Planar<GrayU8> output, int size) {
         // Vérification que la taille est impaire
@@ -372,23 +364,4 @@ public class ImageProcessing {
             }
         }
     }
-
-	public static void main(String[] args) {
-        if (args.length < 2) {
-            System.out.println("missing input or output image filename");
-            System.exit(-1);
-        }
-        final String inputPath = args[0];
-        BufferedImage image = UtilImageIO.loadImage(inputPath);
-        Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(image, null, true, GrayU8.class);
-        Planar<GrayU8> output = input.createSameShape();
-        long beginning = System.nanoTime();
-        histogram(input);
-        long end = System.nanoTime();
-        System.out.println("Duration : " + ((end - beginning) / 1000000) + "ms");
-        // save output image
-        final String outputPath = args[1];
-        UtilImageIO.saveImage(input, outputPath);
-        System.out.println("Image saved in: " + outputPath);	}
-
 }
