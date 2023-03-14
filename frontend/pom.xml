@@ -7,7 +7,7 @@
 
 	<parent>
 		<groupId>pdl</groupId>
-		<artifactId>client-serveur</artifactId>
+		<artifactId>PDL-Project</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
