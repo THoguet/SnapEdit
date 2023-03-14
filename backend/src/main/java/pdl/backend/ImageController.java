@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
+import javax.print.attribute.standard.Media;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,14 +39,14 @@ public class ImageController {
 		this.imageDao = imageDao;
 	}
 
-	@GetMapping(value = "/images/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+	@GetMapping(value = "/images/{id}", produces = MediaType.IMAGE_JPEG_VALUE || MediaType.IMAGE_PNG_VALUE)
 	public ResponseEntity<?> getImage(@PathVariable("id") long id) {
 
 		Optional<Image> image = imageDao.retrieve(id);
 
 		if (image.isPresent()) {
 			InputStream inputStream = new ByteArrayInputStream(image.get().getData());
-			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(new InputStreamResource(inputStream));
+			return ResponseEntity.ok().contentType(image.getMediaType()).body(new InputStreamResource(inputStream));
 		}
 		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
 	}
@@ -65,7 +67,7 @@ public class ImageController {
 	public ResponseEntity<?> addImage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
 
 		String contentType = file.getContentType();
-		if (contentType != null && !contentType.equals(MediaType.IMAGE_JPEG.toString())) {
+		if (contentType != null && !contentType.equals(MediaType.IMAGE_JPEG.toString()) && !contentType.equals(MediaType.IMAGE_PNG.toString())) {
 			return new ResponseEntity<>("Only JPEG/PNG file format supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 		}
 		try {
@@ -92,4 +94,15 @@ public class ImageController {
 		return nodes;
 	}
 
+	@GetMapping(value = "/images/{id}?algorithm={X}&p1=Y&p2=Z")
+	public ResponseEntity<?> appl(@PathVariable("id") long id) {
+
+		Optional<Image> image = imageDao.retrieve(id);
+
+		if (image.isPresent()) {
+			InputStream inputStream = new ByteArrayInputStream(image.get().getData());
+			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(new InputStreamResource(inputStream));
+		}
+		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
+	}
 }
