@@ -1,13 +1,14 @@
 package pdl.backend;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.print.attribute.standard.Media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -33,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 
 @RestController
 public class ImageController {
@@ -93,52 +93,47 @@ public class ImageController {
 
     @GetMapping(value = "/images/{id}", produces = { MediaType.IMAGE_JPEG_VALUE,
             MediaType.IMAGE_PNG_VALUE })
-    public ResponseEntity<?> applyAlgorithm(@PathVariable("id") long id,
-            @RequestParam(required = false) String algorithm,
-            @RequestParam(required = false) Long p1, @RequestParam(required = false) Long p2) {
+    public ResponseEntity<?> getImage(@PathVariable("id") long id,
+            @RequestParam(required = false) Map<String, String> parameters) {
 
         Optional<Image> image = imageDao.retrieve(id);
         if (image.isPresent()) {
-            if (algorithm == null) {
+            if (parameters.isEmpty()) {
                 InputStream inputStream = new ByteArrayInputStream(image.get().getData());
                 return ResponseEntity.ok().contentType(image.get().getMediaType())
                         .body(new InputStreamResource(inputStream));
 
             }
-            if (algorithm.equals("changeLuminosity")) {
-                BufferedImage bufImg;
-                try {
-                    bufImg = ImageIO.read(new ByteArrayInputStream(image.get().getData()));
-                } catch (IOException e) {
-                    return new ResponseEntity<>("Image not readable",
-                            HttpStatus.INTERNAL_SERVER_ERROR);
+            if (parameters.containsKey("algorithm")) {
+                if (parameters.get("algorithm").equals("changeLuminosity") && parameters.containsKey("delta")) {
+                    BufferedImage bufImg;
+                    try {
+                        bufImg = ImageIO.read(new ByteArrayInputStream(image.get().getData()));
+                    } catch (IOException e) {
+                        return new ResponseEntity<>("Image not readable",
+                                HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                    Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null,
+                            true, GrayU8.class);
+                    ImageProcessing.changeLuminosity(input, Integer.parseInt(parameters.get("delta")));
+                    bufImg = ConvertBufferedImage.convertTo_U8(input, null, true);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    try {
+                        ImageIO.write(bufImg, image.get().getMediaType().getSubtype(), baos);
+
+                    } catch (IOException e) {
+                        return new ResponseEntity<>("Image couldn't be converted",
+                                HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                    byte[] imageData = baos.toByteArray();
+
+                    InputStream inputStream = new ByteArrayInputStream(imageData);
+                    return ResponseEntity.ok().contentType(image.get().getMediaType())
+                            .body(new InputStreamResource(inputStream));
                 }
-                Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null,
-                        true, GrayU8.class);
-                ImageProcessing.changeLuminosity(input, (int) p1.longValue());
-
-                int width = input.getWidth();
-                int height = input.getHeight();
-                int numChannels = input.getNumBands();
-
-                // Allocate a byte array to hold the pixel data
-                byte[] imageData = new byte[width * height * numChannels];
-
-                // Iterate over the planes and copy the pixel data into the byte array
-                for (int i = 0; i < numChannels; i++) {
-                    byte[] planeData = input.getBand(i).getData();
-                    System.arraycopy(planeData, 0, imageData, i * width * height, width *
-                            height);
-                }
-
-                InputStream inputStream = new ByteArrayInputStream(image.get().getData());
-                // InputStream inputStream = new ByteArrayInputStream(imageData);
-                System.out.println("hi");
-                return ResponseEntity.ok().contentType(image.get().getMediaType())
-                        .body(new InputStreamResource(inputStream));
             }
+
         }
-        return new ResponseEntity<>("Image id=" + id + " not found.",
-                HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
     }
 }
