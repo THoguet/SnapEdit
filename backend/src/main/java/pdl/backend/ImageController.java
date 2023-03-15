@@ -181,7 +181,7 @@ public class ImageController {
                                         HttpStatus.BAD_REQUEST);
                             }
                             Planar<GrayU8> clone = input.clone();
-                            ImageProcessing.gaussienFilter(clone, input, null);
+                            ImageProcessing.gaussienFilter(clone, input, i);
                         } catch (NumberFormatException e) {
                             return new ResponseEntity<>("Parameter 'size' should be an odd positive integer",
                                     HttpStatus.BAD_REQUEST);
