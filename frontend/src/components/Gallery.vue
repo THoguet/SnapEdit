@@ -38,6 +38,16 @@ export default defineComponent({
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	margin: 5px;
+	padding: 0.5rem;
+	background-color: #1a1a1a;
+	color: white;
+	border-radius: 8px;
+	border: 1px solid transparent;
+}
+
+.image:hover {
+	border-color: #646cff;
 }
 
 label {

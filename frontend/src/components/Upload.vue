@@ -108,9 +108,10 @@ export default defineComponent({
 	</div>
 	<h2 v-if="file !== null && file.length !== 0">Preview :</h2>
 	<div class="previewBox">
-		<label v-for="(f, id) in (file as FileList)" :key="id" class="imageLabel">{{ (f as File).name }}:
+		<div class="imagePreview" v-for="(f, id) in (file as FileList)" :key="id">
+			<label>{{ (f as File).name }}</label>
 			<img :id="'preview-' + id" />
-		</label>
+		</div>
 	</div>
 </template>
 <style scoped>
@@ -144,27 +145,17 @@ h2 {
 .filename {
 	background-color: white;
 	color: black;
-	border: 1px solid rgb(255, 0, 98);
+	border: 1px solid #1a1a1a;
 	border-radius: 0 8px 8px 0;
 }
 
 #labelInput {
 	border-radius: 8px 0 0 8px;
-	background-color: rgb(255, 0, 98);
+	background-color: #1a1a1a;
 }
 
 .inputform:hover label {
 	border-color: #646cff;
-}
-
-.imageLabel {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	max-width: 33%;
-	height: 33vh;
-	margin: 5px;
 }
 
 .previewBox {
@@ -173,6 +164,25 @@ h2 {
 	align-items: center;
 	justify-content: space-evenly;
 	flex-wrap: wrap;
+}
+
+.imagePreview {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	max-width: 33%;
+	height: 33vh;
+	margin: 5px;
+	padding: 0.5rem;
+	background-color: #1a1a1a;
+	color: white;
+	border-radius: 8px;
+	border: 1px solid transparent;
+}
+
+.imagePreview:hover {
+	border-color: #646cff;
 }
 
 .error {

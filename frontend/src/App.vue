@@ -113,7 +113,7 @@ ul>li {
 }
 
 .active {
-	background-color: #09c7aa;
+	background-color: #646cff;
 }
 
 .active>a {
@@ -122,7 +122,7 @@ ul>li {
 
 a {
 	color: rgb(172, 165, 154);
-	text-decoration-color: initial;
+	text-decoration: none;
 	font-family: "Aeonik", sans-serif;
 }
 
