@@ -105,32 +105,123 @@ public class ImageController {
 
             }
             if (parameters.containsKey("algorithm")) {
-                if (parameters.get("algorithm").equals("changeLuminosity") && parameters.containsKey("delta")) {
-                    BufferedImage bufImg;
-                    try {
-                        bufImg = ImageIO.read(new ByteArrayInputStream(image.get().getData()));
-                    } catch (IOException e) {
-                        return new ResponseEntity<>("Image not readable",
-                                HttpStatus.INTERNAL_SERVER_ERROR);
-                    }
-                    Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null,
-                            true, GrayU8.class);
-                    ImageProcessing.changeLuminosity(input, Integer.parseInt(parameters.get("delta")));
-                    bufImg = ConvertBufferedImage.convertTo_U8(input, null, true);
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    try {
-                        ImageIO.write(bufImg, image.get().getMediaType().getSubtype(), baos);
-
-                    } catch (IOException e) {
-                        return new ResponseEntity<>("Image couldn't be converted",
-                                HttpStatus.INTERNAL_SERVER_ERROR);
-                    }
-                    byte[] imageData = baos.toByteArray();
-
-                    InputStream inputStream = new ByteArrayInputStream(imageData);
-                    return ResponseEntity.ok().contentType(image.get().getMediaType())
-                            .body(new InputStreamResource(inputStream));
+                String algo = parameters.get("algorithm");
+                BufferedImage bufImg;
+                try {
+                    bufImg = ImageIO.read(new ByteArrayInputStream(image.get().getData()));
+                } catch (IOException e) {
+                    return new ResponseEntity<>("Image not readable",
+                            HttpStatus.INTERNAL_SERVER_ERROR);
                 }
+                Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null,
+                        true, GrayU8.class);
+                if (algo.equals("changeLuminosity")) {
+                    if (parameters.containsKey("delta")
+                            && parameters.size() == 2) {
+                        try {
+                            int i = Integer.parseInt(parameters.get("delta"));
+                            ImageProcessing.changeLuminosity(input, i);
+                        } catch (NumberFormatException e) {
+                            return new ResponseEntity<>("Parameter 'delta' should be an integer",
+                                    HttpStatus.BAD_REQUEST);
+                        }
+                    } else {
+                        return new ResponseEntity<>(
+                                "Algorithm 'changeLuminosity' requires one parameter 'delta'(integer)",
+                                HttpStatus.BAD_REQUEST);
+                    }
+                } else if (algo.equals("histogram")) {
+                    if (parameters.size() == 1) {
+                        ImageProcessing.histogram(input);
+                    } else {
+                        return new ResponseEntity<>(
+                                "Algorithm 'histogram' requires no parameters",
+                                HttpStatus.BAD_REQUEST);
+                    }
+                } else if (algo.equals("colorFilter")) {
+                    if (parameters.containsKey("hue") && parameters.size() == 2) {
+                        try {
+                            int i = Integer.parseInt(parameters.get("hue"));
+                            ImageProcessing.colorFilter(i, input);
+                            // hue entre 0 et 360?
+                        } catch (NumberFormatException e) {
+                            return new ResponseEntity<>("Parameter 'hue' should be an integer",
+                                    HttpStatus.BAD_REQUEST);
+                        }
+                    } else {
+                        return new ResponseEntity<>(
+                                "Algorithm 'colorFilter' requires one parameter 'hue'(integer)",
+                                HttpStatus.BAD_REQUEST);
+                    }
+                } else if (algo.equals("meanFilter")) {
+                    if (parameters.containsKey("size") && parameters.size() == 2) {
+                        try {
+                            int i = Integer.parseInt(parameters.get("size"));
+                            if (i % 2 == 0) {
+                                return new ResponseEntity<>("Parameter 'size' should be an odd positive integer",
+                                        HttpStatus.BAD_REQUEST);
+                            }
+                            Planar<GrayU8> clone = input.clone();
+                            ImageProcessing.meanFilter(clone, input, i);
+                        } catch (NumberFormatException e) {
+                            return new ResponseEntity<>("Parameter 'size' should be an odd positive integer",
+                                    HttpStatus.BAD_REQUEST);
+                        }
+                    } else {
+                        return new ResponseEntity<>(
+                                "Algorithm 'meanFilter' requires one parameter 'size'(odd positive integer)",
+                                HttpStatus.BAD_REQUEST);
+                    }
+                } else if (algo.equals("gaussienFilter")) {
+                    if (parameters.containsKey("size") && parameters.size() == 2) {
+                        try {
+                            int i = Integer.parseInt(parameters.get("size"));
+                            if (i % 2 == 0) {
+                                return new ResponseEntity<>("Parameter 'size' should be an odd positive integer",
+                                        HttpStatus.BAD_REQUEST);
+                            }
+                            Planar<GrayU8> clone = input.clone();
+                            ImageProcessing.gaussienFilter(clone, input, null);
+                        } catch (NumberFormatException e) {
+                            return new ResponseEntity<>("Parameter 'size' should be an odd positive integer",
+                                    HttpStatus.BAD_REQUEST);
+                        }
+                    } else {
+                        return new ResponseEntity<>(
+                                "Algorithm 'gaussienFilter' requires one parameter 'size'(odd positive integer)",
+                                HttpStatus.BAD_REQUEST);
+                    }
+                } else if (algo.equals("contours")) {
+                    if (parameters.size() == 1) {
+                        Planar<GrayU8> clone = input.clone();
+                        ImageProcessing.gradientImageSobel(clone, input);
+                    } else {
+                        return new ResponseEntity<>(
+                                "Algorithm 'contours' requires no parameters",
+                                HttpStatus.BAD_REQUEST);
+                    }
+                } else {
+                    return new ResponseEntity<>(
+                            "The requested algorithm '" + parameters.get("algorithm") + "' doesn't exist",
+                            HttpStatus.BAD_REQUEST);
+                }
+                bufImg = ConvertBufferedImage.convertTo_U8(input, null, true);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                try {
+                    ImageIO.write(bufImg, image.get().getMediaType().getSubtype(), baos);
+
+                } catch (IOException e) {
+                    return new ResponseEntity<>("Image couldn't be converted",
+                            HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                byte[] imageData = baos.toByteArray();
+
+                InputStream inputStream = new ByteArrayInputStream(imageData);
+                return ResponseEntity.ok().contentType(image.get().getMediaType())
+                        .body(new InputStreamResource(inputStream));
+            } else {
+                return new ResponseEntity<>("First parameter should be 'algorithm",
+                        HttpStatus.BAD_REQUEST);
             }
 
         }
