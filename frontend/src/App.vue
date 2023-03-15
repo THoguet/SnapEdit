@@ -8,11 +8,6 @@ import { api } from '@/http-api'
 import { ImageType, ImageClass } from './image';
 </script>
 <script lang="ts">
-const routes: { [key: string]: string } = {
-	'/': "Home",
-	'Gallery': "Gallery",
-	'Upload': "Upload"
-}
 export default defineComponent({
 	components: {
 		Home,
@@ -24,13 +19,7 @@ export default defineComponent({
 		return {
 			images: new Map<Number, ImageType>(),
 			currentPath: window.location.hash,
-			sent: false,
 			file: null as FileList | null
-		}
-	},
-	computed: {
-		currentView(): string {
-			return routes[this.currentPath.slice(1) || '/'] || "notFound";
 		}
 	},
 	methods: {
@@ -48,21 +37,10 @@ export default defineComponent({
 			api.deleteImage(id).then(() => {
 				this.updateImageList(100);
 			})
-		},
-		isActive(route: string) {
-			if (route === undefined) {
-				if (this.currentPath === "")
-					return 'router active';
-				route = "/";
-			}
-			return this.currentPath.endsWith(route) ? 'router active' : 'router';
 		}
 	},
-	mounted() {
+	created() {
 		this.updateImageList(0);
-		window.addEventListener('hashchange', () => {
-			this.currentPath = window.location.hash;
-		});
 	}
 })
 </script>
@@ -71,15 +49,16 @@ export default defineComponent({
 		<div class="navi">
 			<nav>
 				<ul>
-					<li v-for="route in routes" :class="isActive(routes[route])">
-						<a :href="'#' + (routes[route] || '/')"> <span>{{ route }}</span></a>
-					</li>
+					<li><router-link to="/">Home</router-link></li>
+					<li><router-link to="/gallery">Gallery</router-link></li>
+					<li><router-link to="/upload">Upload</router-link></li>
 				</ul>
 			</nav>
 		</div>
 	</header>
-	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile"
-		@updateImageList="updateImageList(100)" />
+	<div class="content">
+		<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList(100)" />
+	</div>
 </template>
 <style scoped>
 .navi {
@@ -103,24 +82,28 @@ ul>li+li {
 	margin-left: 30px;
 }
 
+.content {
+	margin-top: 100px;
+}
+
 ul>li {
 	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 5px 15px;
-	border-radius: 60px;
 }
 
-.active {
+.router-link-active {
 	background-color: #646cff;
 }
 
-.active>a {
+.router-link-active>a {
 	color: rgb(205, 201, 194);
 }
 
 a {
+	padding: 5px 15px;
+	border-radius: 60px;
 	color: rgb(172, 165, 154);
 	text-decoration: none;
 	font-family: "Aeonik", sans-serif;
