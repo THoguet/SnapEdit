@@ -1,14 +1,23 @@
 package pdl.backend;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import boofcv.io.image.ConvertBufferedImage;
+import boofcv.struct.image.GrayU8;
+import boofcv.struct.image.Planar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -24,6 +33,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.awt.image.BufferedImage;
 
 @RestController
 public class ImageController {
@@ -37,43 +49,34 @@ public class ImageController {
 		this.imageDao = imageDao;
 	}
 
-	@GetMapping(value = "/images/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public ResponseEntity<?> getImage(@PathVariable("id") long id) {
-
-		Optional<Image> image = imageDao.retrieve(id);
-
-		if (image.isPresent()) {
-			InputStream inputStream = new ByteArrayInputStream(image.get().getData());
-			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(new InputStreamResource(inputStream));
-		}
-		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
-	}
-
 	@DeleteMapping(value = "/images/{id}")
 	public ResponseEntity<?> deleteImage(@PathVariable("id") long id) {
-
-		Optional<Image> image = imageDao.retrieve(id);
-
-		if (image.isPresent()) {
-			imageDao.delete(image.get());
-			return new ResponseEntity<>("Image id=" + id + " deleted.", HttpStatus.OK);
-		}
-		return new ResponseEntity<>("Image id=" + id + " not found.", HttpStatus.NOT_FOUND);
+		var img = imageDao.retrieve(id);
+		if (img.isEmpty())
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		imageDao.delete(img.get());
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-	@PostMapping(value = "/images")
+	@PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<?> addImage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
-
 		String contentType = file.getContentType();
-		if (contentType != null && !contentType.equals(MediaType.IMAGE_JPEG.toString())) {
-			return new ResponseEntity<>("Only JPEG/PNG file format supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-		}
+		if (contentType == null
+				|| (!contentType.equals(MediaType.IMAGE_JPEG_VALUE) && !contentType.equals(MediaType.IMAGE_PNG_VALUE)))
+			return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 		try {
-			imageDao.create(new Image(file.getOriginalFilename(), file.getBytes()));
+			Image newImg = new Image(file.getOriginalFilename(), file.getBytes());
+			imageDao.create(newImg);
+			URI newURI = ServletUriComponentsBuilder.fromCurrentRequest().path("/" + newImg.getId()).build().toUri();
+			return ResponseEntity.created(newURI).build();
 		} catch (IOException e) {
-			return new ResponseEntity<>("Failure to read file", HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
 		}
-		return new ResponseEntity<>("Image uploaded", HttpStatus.CREATED);
+	}
+
+	@DeleteMapping(value = "/images")
+	public ResponseEntity<?> deleteImagesList() {
+		return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
 	}
 
 	@GetMapping(value = "/images", produces = "application/json")
@@ -92,4 +95,110 @@ public class ImageController {
 		return nodes;
 	}
 
+	@GetMapping(value = "/images/{id}", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE })
+	public ResponseEntity<?> getImage(@PathVariable("id") long id,
+			@RequestParam(required = false) Map<String, String> parameters) {
+
+		// Récupère l'image correspondante à l'ID fourni
+		Optional<Image> optImage = imageDao.retrieve(id);
+		if (!optImage.isPresent())
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		Image image = optImage.get();
+		// Si aucun paramètre n'est fourni, renvoie l'image brute
+		if (parameters.isEmpty()) {
+			InputStream inputStream = new ByteArrayInputStream(image.getData());
+			return ResponseEntity.ok().contentType(image.getMediaType())
+					.body(new InputStreamResource(inputStream));
+		}
+		// Vérifie la présence du paramètre "algorithm"
+		if (!parameters.containsKey("algorithm"))
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+		String algo = parameters.get("algorithm");
+		BufferedImage bufImg;
+		try {
+			bufImg = ImageIO.read(new ByteArrayInputStream(image.getData()));
+		} catch (IOException e) {
+			System.out.println("Error while reading image");
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null, true, GrayU8.class);
+
+		// applique l'algo a l'image en fonction des parametres et verifie la validite
+		// des parametres
+		switch (algo) {
+			case "changeLuminosity":
+				if (!parameters.containsKey("delta") || parameters.size() != 2)
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				try {
+					int i = Integer.parseInt(parameters.get("delta"));
+					ImageProcessing.changeLuminosity(input, i);
+				} catch (NumberFormatException e) {
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
+				break;
+			case "histogram":
+				if (parameters.size() != 1)
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				ImageProcessing.histogram(input);
+				break;
+			case "colorFilter":
+				if (!parameters.containsKey("hue") || parameters.size() != 2)
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				try {
+					int i = Integer.parseInt(parameters.get("hue"));
+					ImageProcessing.colorFilter(i, input);
+					// hue entre 0 et 360?
+				} catch (NumberFormatException e) {
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
+				break;
+			case "meanFilter":
+				if (!parameters.containsKey("size") || parameters.size() != 2)
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				try {
+					int i = Integer.parseInt(parameters.get("size"));
+					if (i % 2 == 0)
+						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					Planar<GrayU8> clone = input.clone();
+					ImageProcessing.meanFilter(clone, input, i);
+				} catch (NumberFormatException e) {
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
+				break;
+			case "gaussienFilter":
+				if (!parameters.containsKey("size") || parameters.size() != 2)
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				try {
+					int i = Integer.parseInt(parameters.get("size"));
+					if (i % 2 == 0)
+						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					Planar<GrayU8> clone = input.clone();
+					ImageProcessing.gaussienFilter(clone, input, i);
+				} catch (NumberFormatException e) {
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
+				break;
+			case "contours":
+				if (parameters.size() != 1)
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				Planar<GrayU8> clone = input.clone();
+				ImageProcessing.gradientImageSobel(clone, input);
+				break;
+			default:
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+
+		// transforme l'image en quelque chose que le navigateur puisse lire
+		bufImg = ConvertBufferedImage.convertTo_U8(input, null, true);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(bufImg, image.getMediaType().getSubtype(), baos);
+		} catch (IOException e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		byte[] imageData = baos.toByteArray();
+		InputStream inputStream = new ByteArrayInputStream(imageData);
+		return ResponseEntity.ok().contentType(image.getMediaType()).body(new InputStreamResource(inputStream));
+	}
 }

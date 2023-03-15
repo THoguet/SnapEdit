@@ -315,6 +315,36 @@ public class ImageProcessing {
 	}
 
 	/**
+	 * TODO
+	 * Calcule le noyau gaussien de taille demandée
+	 * 
+	 * @param size taille du noyau gaussien
+	 * @return noyau gaussien
+	 */
+	public static int[][] createGaussienKernel(int size) {
+		// Vérification que la taille est impaire
+		if (size % 2 == 0 || size < 0) {
+			throw new IllegalArgumentException("La taille doit être impaire et positive");
+		}
+		double[][] kernel = new double[size][size];
+		double sigma = 4 / 3;
+		double sum = 0.0; // For accumulating the kernel values
+		for (int x = 0; x < size; ++x)
+			for (int y = 0; y < size; ++y) {
+				kernel[x][y] = 1 / (2 * Math.PI * sigma * sigma) * Math.exp(-(x * x + y * y) / (2 * sigma * sigma));
+
+			}
+
+		// Normalize the kernel
+		int[][] kernelk = new int[size][size];
+		for (int x = 0; x < size; ++x)
+			for (int y = 0; y < size; ++y)
+				kernelk[x][y] = (int) (kernel[x][y] / sum);
+
+		return kernelk;
+	}
+
+	/**
 	 * 
 	 * Effectue une convolution sur une image avec le noyau
 	 * donné et stocke le résultat dans l'image de sortie.
@@ -324,8 +354,9 @@ public class ImageProcessing {
 	 * @param kernel Le noyau de convolution à utiliser.
 	 */
 	public static void gaussienFilter(Planar<GrayU8> input, Planar<GrayU8> output,
-			int[][] kernel) {
-		int size = kernel.length;
+			int size) {
+		int[][] kernel = { { 1, 2, 3, 2, 1 }, { 2, 6, 8, 6, 2 }, { 3, 8, 10, 8, 3 }, { 2, 6, 8, 6, 2 },
+				{ 1, 2, 3, 2, 1 } };
 		int half = size / 2;
 		int totalCoefs = 0;
 		// Calcul du nombre total de coefficients dans le noyau
