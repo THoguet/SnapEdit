@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+import javax.print.attribute.standard.Media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -21,6 +22,7 @@ import boofcv.struct.image.Planar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,11 +51,27 @@ public class ImageController {
 		this.imageDao = imageDao;
 	}
 
+	/**
+	 * Retourne une erreur de type APPLICATION_JSON
+	 *
+	 * @param message Le message d'erreur à afficher
+	 * @param status  La valeur de l'erreur
+	 * @return Une ResponseEntity
+	 */
+	public ResponseEntity<?> JSONError(String message, HttpStatus status) {
+		ObjectNode objectNode = mapper.createObjectNode();
+		objectNode.put("code", Integer.toString(status.value()));
+		objectNode.put("message", message);
+		final HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		return new ResponseEntity<>(objectNode, httpHeaders, status);
+	}
+
 	@DeleteMapping(value = "/images/{id}")
 	public ResponseEntity<?> deleteImage(@PathVariable("id") long id) {
 		var img = imageDao.retrieve(id);
 		if (img.isEmpty())
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return JSONError("Image n°" + id + "doesn't exist", HttpStatus.NOT_FOUND);
 		imageDao.delete(img.get());
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
@@ -63,7 +81,7 @@ public class ImageController {
 		String contentType = file.getContentType();
 		if (contentType == null
 				|| (!contentType.equals(MediaType.IMAGE_JPEG_VALUE) && !contentType.equals(MediaType.IMAGE_PNG_VALUE)))
-			return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			return JSONError("Content type " + contentType + "isn't supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 		try {
 			Image newImg = new Image(file.getOriginalFilename(), file.getBytes());
 			imageDao.create(newImg);
@@ -76,7 +94,7 @@ public class ImageController {
 
 	@DeleteMapping(value = "/images")
 	public ResponseEntity<?> deleteImagesList() {
-		return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+		return JSONError("Method DELETE not allowed for /images", HttpStatus.METHOD_NOT_ALLOWED);
 	}
 
 	@GetMapping(value = "/images", produces = "application/json")
@@ -95,7 +113,8 @@ public class ImageController {
 		return nodes;
 	}
 
-	@GetMapping(value = "/images/{id}", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE })
+	@GetMapping(value = "/images/{id}", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE,
+			"application/json" })
 	public ResponseEntity<?> getImage(@PathVariable("id") long id,
 			@RequestParam(required = false) Map<String, String> parameters) {
 
@@ -111,16 +130,16 @@ public class ImageController {
 					.body(new InputStreamResource(inputStream));
 		}
 		// Vérifie la présence du paramètre "algorithm"
-		if (!parameters.containsKey("algorithm"))
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		if (!parameters.containsKey("algorithm")) {
+			return JSONError("First parameter should be 'algorithm'", HttpStatus.BAD_REQUEST);
+		}
 
 		String algo = parameters.get("algorithm");
 		BufferedImage bufImg;
 		try {
 			bufImg = ImageIO.read(new ByteArrayInputStream(image.getData()));
 		} catch (IOException e) {
-			System.out.println("Error while reading image");
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null, true, GrayU8.class);
 
@@ -129,64 +148,78 @@ public class ImageController {
 		switch (algo) {
 			case "changeLuminosity":
 				if (!parameters.containsKey("delta") || parameters.size() != 2)
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Algorithm 'changeLuminosity' requires one parameter 'delta'(integer)",
+							HttpStatus.BAD_REQUEST);
 				try {
 					int i = Integer.parseInt(parameters.get("delta"));
 					ImageProcessing.changeLuminosity(input, i);
 				} catch (NumberFormatException e) {
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Parameter 'delta' should be an integer", HttpStatus.BAD_REQUEST);
 				}
 				break;
 			case "histogram":
 				if (parameters.size() != 1)
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Algorithm 'histogram' doesn't require any parameters", HttpStatus.BAD_REQUEST);
 				ImageProcessing.histogram(input);
 				break;
 			case "colorFilter":
 				if (!parameters.containsKey("hue") || parameters.size() != 2)
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Algorithm 'colorFilter' requires one parameter 'hue'(integer)",
+							HttpStatus.BAD_REQUEST);
 				try {
 					int i = Integer.parseInt(parameters.get("hue"));
+					if (i < 0) {
+						return JSONError("Parameter 'hue' should be an integer between 0 and 360",
+								HttpStatus.BAD_REQUEST);
+					}
 					ImageProcessing.colorFilter(i, input);
 					// hue entre 0 et 360?
 				} catch (NumberFormatException e) {
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Parameter 'hue' should be an integer between 0 and 360",
+							HttpStatus.BAD_REQUEST);
 				}
 				break;
 			case "meanFilter":
 				if (!parameters.containsKey("size") || parameters.size() != 2)
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Algorithm 'meanFilter' requires one parameter 'size'(positive odd integer)",
+							HttpStatus.BAD_REQUEST);
 				try {
 					int i = Integer.parseInt(parameters.get("size"));
 					if (i % 2 == 0)
-						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+						return JSONError("Parameter 'size' should be a positive odd integer",
+								HttpStatus.BAD_REQUEST);
 					Planar<GrayU8> clone = input.clone();
 					ImageProcessing.meanFilter(clone, input, i);
 				} catch (NumberFormatException e) {
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Parameter 'size' should be a positive odd integer",
+							HttpStatus.BAD_REQUEST);
 				}
 				break;
 			case "gaussienFilter":
 				if (!parameters.containsKey("size") || parameters.size() != 2)
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Algorithm 'gaussienFilter' requires one parameter 'size'(positive odd integer)",
+							HttpStatus.BAD_REQUEST);
 				try {
 					int i = Integer.parseInt(parameters.get("size"));
 					if (i % 2 == 0)
-						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+						return JSONError("Parameter 'size' should be a positive odd integer",
+								HttpStatus.BAD_REQUEST);
 					Planar<GrayU8> clone = input.clone();
 					ImageProcessing.gaussienFilter(clone, input, i);
 				} catch (NumberFormatException e) {
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Parameter 'size' should be a positive odd integer",
+							HttpStatus.BAD_REQUEST);
 				}
 				break;
 			case "contours":
 				if (parameters.size() != 1)
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					return JSONError("Algorithm 'contours' doesn't require any parameters", HttpStatus.BAD_REQUEST);
 				Planar<GrayU8> clone = input.clone();
 				ImageProcessing.gradientImageSobel(clone, input);
 				break;
 			default:
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				return JSONError("Requested algorithm doesn't exist", HttpStatus.BAD_REQUEST);
+
 		}
 
 		// transforme l'image en quelque chose que le navigateur puisse lire
@@ -195,7 +228,7 @@ public class ImageController {
 		try {
 			ImageIO.write(bufImg, image.getMediaType().getSubtype(), baos);
 		} catch (IOException e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		byte[] imageData = baos.toByteArray();
 		InputStream inputStream = new ByteArrayInputStream(imageData);

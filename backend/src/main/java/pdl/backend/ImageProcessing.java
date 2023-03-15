@@ -2,6 +2,7 @@ package pdl.backend;
 
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
+import boofcv.alg.color.ColorHsv;
 
 public class ImageProcessing {
 
@@ -213,6 +214,9 @@ public class ImageProcessing {
 	 * @param input L'image à modifier
 	 */
 	public static void colorFilter(int hue, Planar<GrayU8> input) {
+		if (hue < 0 || hue > 360) {
+			throw new IllegalArgumentException("Hue doit être compris entre 0 et 360");
+		}
 		for (int j = 0; j < input.height; j++) {
 			for (int i = 0; i < input.width; i++) {
 				float[] hsv = new float[3];
