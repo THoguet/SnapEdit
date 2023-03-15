@@ -87,13 +87,13 @@ public class ImageProcessing {
 	 */
 	public static void histogram(Planar<GrayU8> input) {
 		int h[] = new int[256];
-		Planar<GrayU8> output = input.createSameShape();
-		convertColorToGray(input, output);
+		Planar<GrayU8> grayInput = input.createSameShape();
+		convertColorToGray(input, grayInput);
 		// On remplit le tableau avec le nombre de pixels pour chaque niveau de
 		// gris
 		for (int y = 0; y < input.height; y++) {
 			for (int x = 0; x < input.width; x++) {
-				int gl = output.getBand(0).get(x, y);
+				int gl = grayInput.getBand(0).get(x, y);
 				h[gl]++;
 			}
 		}
