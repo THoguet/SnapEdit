@@ -25,7 +25,7 @@ export default defineComponent({
 			};
 		}
 	},
-	mounted() {
+	created() {
 		this.getImage(this.id);
 	},
 	watch: {
