@@ -281,7 +281,7 @@ public class ImageProcessing {
 	 * 
 	 * @param input  image d'entrée
 	 * @param output image de sortie
-	 * @param size   taille du filtre à appliquer
+	 * @param size   taille du filtre à appliquer (doit être impaire)
 	 */
 	public static void meanFilter(Planar<GrayU8> input, Planar<GrayU8> output, int size) {
 		// Vérification que la taille est impaire
