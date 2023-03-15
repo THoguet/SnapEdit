@@ -1,8 +1,5 @@
 package pdl.backend;
 
-import java.awt.image.BufferedImage;
-import boofcv.io.image.UtilImageIO;
-import boofcv.io.image.ConvertBufferedImage;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 
@@ -367,24 +364,4 @@ public class ImageProcessing {
 			}
 		}
 	}
-
-	public static void main(String[] args) {
-		if (args.length < 2) {
-			System.out.println("missing input or output image filename");
-			System.exit(-1);
-		}
-		final String inputPath = args[0];
-		BufferedImage image = UtilImageIO.loadImage(inputPath);
-		Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(image, null, true, GrayU8.class);
-		Planar<GrayU8> output = input.createSameShape();
-		long beginning = System.nanoTime();
-		histogram(input);
-		long end = System.nanoTime();
-		System.out.println("Duration : " + ((end - beginning) / 1000000) + "ms");
-		// save output image
-		final String outputPath = args[1];
-		UtilImageIO.saveImage(input, outputPath);
-		System.out.println("Image saved in: " + outputPath);
-	}
-
 }
