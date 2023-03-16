@@ -2,7 +2,6 @@ package pdl.backend;
 
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
-import boofcv.alg.color.ColorHsv;
 
 public class ImageProcessing {
 
