@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import Image from '@/components/Image.vue'
+import HomeSelect from '@/components/HomeSelect.vue'
+import HomeEditor from '@/components/HomeEditor.vue'
 import { defineComponent } from 'vue'
-import { ImageType } from '@/image'
+import { ImageClass, ImageType } from '@/image'
+import { Filter } from '@/filter'
 </script>
 <script lang="ts">
 export default defineComponent({
@@ -19,10 +22,9 @@ export default defineComponent({
 	data() {
 		return {
 			imageSelectedId: -1,
-			sure: false,
 			timer: null as ReturnType<typeof setTimeout> | null,
-			open: false,
-			editor: false
+			editor: false,
+			filter: undefined as Filter | undefined,
 		}
 	},
 	created() {
@@ -36,22 +38,15 @@ export default defineComponent({
 		images() {
 			this.updateImageSelectedId();
 		},
-		imageSelectedId() {
-			this.sure = false;
-		}
 	},
 	methods: {
-		updateImageSelectedId() {
+		updateImageSelectedId(id: number = -1) {
 			if (this.images.size === 0)
 				this.imageSelectedId = -1;
+			else if (id !== -1 && this.images.has(id))
+				this.imageSelectedId = id;
 			else
 				this.imageSelectedId = this.images.keys().next().value;
-		},
-		confirmDelete() {
-			if (this.sure)
-				this.$emit('delete', this.imageSelectedId);
-			else
-				this.sure = true;
 		},
 		startTimer() {
 			if (this.timer !== null)
@@ -71,36 +66,26 @@ export default defineComponent({
 </script>
 <template>
 	<div class="flex" v-if="images.size > 0">
+		<h3 v-if="!editor">Restez sur l'image pour passer en mode éditeur</h3>
+		<h3 v-else>Restez sur l'image pour passer en mode selection</h3>
+		<a class="button" :href="images.get(imageSelectedId)?.data"
+			:download="images.get(imageSelectedId)?.name">Télécharger {{ images.get(imageSelectedId)?.name }}</a>
 		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()" class="home"
-			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images">
+			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images"
+			:filter="filter">
 		</Image>
-		<div v-if="!editor" class="selector">
-			<label>Selectioner une image: </label>
-			<div class="custom-select" :tabindex="imageSelectedId" @blur="open = false">
-				<div class="selected" :class="{ open: open }" @click="open = !open">
-					<span>{{ images.get(imageSelectedId)?.name }}</span>
-				</div>
-				<div class="items" :class="{ selectHide: !open }">
-					<div v-for="[id, image] of images" :key="id" @click="imageSelectedId = image.id; open = false;">
-						<span>{{ image.name }}</span>
-					</div>
-				</div>
-			</div>
-			<button class="button" @mouseleave="sure = false" @click="confirmDelete()" :class="{ confirm: sure }">
-				{{ sure ? "Confirmer" : "Supprimer" }}</button>
-			<a class="button" :href="images.get(imageSelectedId)?.data"
-				:download="images.get(imageSelectedId)?.name">Télécharger</a>
-		</div>
-		<div v-else>
-
-		</div>
+		<HomeSelect v-if="!editor" :images="images" :image-selected-id="imageSelectedId" @delete="id => $emit('delete', id)"
+			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
+		<HomeEditor v-else @apply-filter="(newFilter) => filter = newFilter"></HomeEditor>
 	</div>
 	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
-@import url(@/customSelect.css);
-
 h1 {
+	color: white;
+}
+
+h3 {
 	color: white;
 }
 
@@ -112,34 +97,11 @@ html {
 	overflow: hidden;
 }
 
-.selector {
-	margin-bottom: 5%;
-	display: flex;
-	flex-direction: row;
-	align-content: center;
-	justify-content: center;
-	gap: 1em;
-}
-
-.selector label {
-	display: flex;
-	align-items: center;
-	flex-shrink: 0;
-}
 
 .flex {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-}
-
-.confirm {
-	background-color: red;
-	color: white;
-}
-
-label {
-	color: white;
 }
 </style>
 <style>
@@ -148,7 +110,7 @@ label {
 	width: auto;
 	height: auto;
 	max-height: 60vh;
-	margin: 0 0 2vw 0;
+	margin: 2vw 0;
 }
 
 div.home.imageContainer:hover {

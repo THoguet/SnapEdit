@@ -30,6 +30,7 @@ h1 {
 }
 
 .flex {
+	margin-top: 100px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;

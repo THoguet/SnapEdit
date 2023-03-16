@@ -54,9 +54,7 @@ export default defineComponent({
 			</nav>
 		</div>
 	</header>
-	<div class="content">
-		<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList()" />
-	</div>
+	<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList()" />
 </template>
 <style scoped>
 .navi {
@@ -78,10 +76,6 @@ header {
 
 ul>li+li {
 	margin-left: 30px;
-}
-
-.content {
-	margin-top: 100px;
 }
 
 ul>li {

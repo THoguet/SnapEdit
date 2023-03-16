@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue';
 import { api } from '@/http-api';
 import { ImageType } from '@/image';
+import { Filter } from '@/filter';
 </script>
 <script lang="ts">
 export default defineComponent({
@@ -16,23 +17,33 @@ export default defineComponent({
 		},
 		redirect: {
 			type: String
+		},
+		filter: {
+			type: Filter
 		}
 	},
 	data() {
 		return {
-			data: "" as string
+			data: "" as string,
 		}
 	},
 	methods: {
-		getImage(id: number) {
-			if (this.images.has(id) && this.images.get(id)!.data != null) {
+		getImage(id: number, force: boolean = false) {
+			if (!force && this.images.has(id) && this.images.get(id)!.data != null) {
 				this.data = this.images.get(id)!.data;
 			} else {
 				this.downloadImage(id);
 			}
 		},
 		async downloadImage(id: number) {
-			const data = await api.getImage(id);
+			let f = this.filter;
+			if (this.filter !== undefined) {
+				if (this.filter.updated)
+					this.filter.updated = false;
+				else
+					f = undefined;
+			}
+			const data = await api.getImage(id, f);
 			const reader = new window.FileReader();
 			reader.readAsDataURL(data);
 			reader.onload = () => {
@@ -46,7 +57,13 @@ export default defineComponent({
 	},
 	watch: {
 		id() {
-			this.getImage(this.id);
+			this.getImage(this.id)
+		},
+		filter: {
+			handler() {
+				this.getImage(this.id, true);
+			},
+			deep: true
 		}
 	}
 })
