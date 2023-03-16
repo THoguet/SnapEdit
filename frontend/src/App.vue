@@ -49,9 +49,9 @@ export default defineComponent({
 		<div class="navi">
 			<nav>
 				<ul>
-					<li><router-link to="/">Home</router-link></li>
-					<li><router-link to="/gallery">Gallery</router-link></li>
-					<li><router-link to="/upload">Upload</router-link></li>
+					<li><router-link :to="{ name: 'home' }">Home</router-link></li>
+					<li><router-link :to="{ name: 'gallery' }">Gallery</router-link></li>
+					<li><router-link :to="{ name: 'upload' }">Upload</router-link></li>
 				</ul>
 			</nav>
 		</div>
