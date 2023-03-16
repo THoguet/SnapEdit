@@ -4,7 +4,7 @@ const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
 	routes: [
 		{
-			path: '/',
+			path: '/:id(\\d)?',
 			name: 'home',
 			component: () => import('../components/Home.vue')
 		},
@@ -17,6 +17,11 @@ const router = createRouter({
 			path: '/upload',
 			name: "upload",
 			component: () => import('../components/Upload.vue')
+		},
+		{
+			path: '/:pathMatch(.*)*',
+			name: 'not-found',
+			component: () => import('../components/NotFound.vue')
 		}
 	]
 })

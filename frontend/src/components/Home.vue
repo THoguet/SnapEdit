@@ -18,14 +18,18 @@ export default defineComponent({
 	},
 	data() {
 		return {
-			imageSelectedId: -1 as number,
-			sure: false as boolean,
+			imageSelectedId: -1,
+			sure: false,
 			timer: null as ReturnType<typeof setTimeout> | null,
-			open: false as boolean,
+			open: false,
+			editor: false
 		}
 	},
-	mounted() {
-		this.imageSelectedId = this.images.keys().next().value;
+	created() {
+		if (this.$route.params.id)
+			this.imageSelectedId = parseInt(this.$route.params.id as string);
+		else
+			this.imageSelectedId = this.images.keys().next().value;
 	},
 	watch: {
 		images() {
@@ -43,13 +47,11 @@ export default defineComponent({
 				this.sure = true;
 		},
 		startTimer() {
-			if (this.timer !== null) {
+			if (this.timer !== null)
 				clearTimeout(this.timer);
-				this.timer = null;
-			}
 			this.timer = setTimeout(() => {
-				location.href = "/images/" + this.imageSelectedId;
-			}, 2500);
+				this.editor = !this.editor;
+			}, 1900);
 		},
 		clearTimer() {
 			if (this.timer !== null) {
@@ -63,9 +65,9 @@ export default defineComponent({
 <template>
 	<div class="flex" v-if="images.keys != null">
 		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()" class="home"
-			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId">
+			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images">
 		</Image>
-		<div class="selector">
+		<div v-if="!editor" class="selector">
 			<label>Selectioner une image: </label>
 			<div class="custom-select" :tabindex="imageSelectedId" @blur="open = false">
 				<div class="selected" :class="{ open: open }" @click="open = !open">
@@ -77,8 +79,13 @@ export default defineComponent({
 					</div>
 				</div>
 			</div>
-			<button class="button" @mouseleave="sure = false" @click="confirmDelete()" :class="sure ? 'confirm' : ''">
+			<button class="button" @mouseleave="sure = false" @click="confirmDelete()" :class="{ confirm: sure }">
 				{{ sure ? "Confirmer" : "Supprimer" }}</button>
+			<a class="button" :href="images.get(imageSelectedId)?.data"
+				:download="images.get(imageSelectedId)?.name">Télécharger</a>
+		</div>
+		<div v-else>
+
 		</div>
 	</div>
 	<h1 v-else>Aucune image trouvée</h1>
@@ -156,6 +163,10 @@ export default defineComponent({
 
 /* FIN SELECT */
 
+a {
+	text-decoration: none;
+}
+
 html {
 	overflow: hidden;
 }
@@ -191,13 +202,31 @@ label {
 }
 </style>
 <style>
-.home img {
+.home.imageContainer {
 	max-width: 60%;
 	max-height: 60vh;
 }
 
-.home img:hover {
-	transform: scale(2);
-	transition: transform 3s;
+div.home.imageContainer:hover {
+	animation: zoom-in-zoom-out 2s cubic-bezier(1, 0, 0.51, 1.01);
+	transform: none;
+}
+
+@keyframes zoom-in-zoom-out {
+	0% {
+		transform: scale(1);
+	}
+
+	60% {
+		transform: scale(1.5);
+	}
+
+	75% {
+		transform: scale(10);
+	}
+
+	100% {
+		transform: none;
+	}
 }
 </style>
