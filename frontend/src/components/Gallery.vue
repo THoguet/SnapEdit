@@ -19,7 +19,7 @@ export default defineComponent({
 	<div class="flex" v-if="images.keys !== null">
 		<div v-for="[id, image] in images" :key="id" class="image">
 			<label>{{ image.name }}</label>
-			<Image class="gallery" :id="id" />
+			<Image class="gallery" :id="id" :images="images" redirect="home" />
 		</div>
 	</div>
 	<h1 v-else>No image found</h1>
@@ -56,7 +56,7 @@ label {
 }
 </style>
 <style>
-.gallery img {
+.gallery.imageContainer img {
 	margin: 5px;
 	max-width: max(33vw, calc(90vw/v-bind('images.size')));
 	max-height: max(33vh, calc(90vh/v-bind('images.size')));

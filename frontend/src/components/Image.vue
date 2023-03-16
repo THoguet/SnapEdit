@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { defineComponent } from 'vue';
 import { api } from '@/http-api';
+import { ImageType } from '@/image';
 </script>
 <script lang="ts">
 export default defineComponent({
@@ -8,20 +9,35 @@ export default defineComponent({
 		id: {
 			type: Number,
 			required: true
+		},
+		images: {
+			type: Map<number, ImageType>,
+			required: true
+		},
+		redirect: {
+			type: String
+		}
+	},
+	data() {
+		return {
+			data: "" as string
 		}
 	},
 	methods: {
-		async getImage(id: number) {
+		getImage(id: number) {
+			if (this.images.has(id) && this.images.get(id)!.data != null) {
+				this.data = this.images.get(id)!.data;
+			} else {
+				this.downloadImage(id);
+			}
+		},
+		async downloadImage(id: number) {
 			const data = await api.getImage(id);
 			const reader = new window.FileReader();
 			reader.readAsDataURL(data);
 			reader.onload = () => {
-				const imgElt = document.getElementById("img-" + id) as HTMLImageElement;
-				if (imgElt !== null) {
-					if (reader.result as string) {
-						imgElt.setAttribute("src", (reader.result as string));
-					}
-				}
+				this.data = (reader.result as string)
+				this.images.get(id)!.data = this.data;
 			};
 		}
 	},
@@ -36,15 +52,24 @@ export default defineComponent({
 })
 </script>
 <template>
-	<div>
-		<a :href="'./images/' + id" target="_blank">
-			<img :id="'img-' + id" />
+	<div class="imageContainer">
+		<RouterLink v-if="redirect" :to="{ name: redirect, params: { id: id } }">
+			<img :id="'img-' + id" :src="data" />
+		</RouterLink>
+		<a v-else :href="'./images/' + id" target="_blank">
+			<img :id="'img-' + id" :src="data" />
 		</a>
 	</div>
 </template>
 
-<style scoped>
-img:hover {
+<style>
+.imageContainer img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.imageContainer:hover {
 	transform: scale(1.1);
 	transition: transform 0.5s;
 }
