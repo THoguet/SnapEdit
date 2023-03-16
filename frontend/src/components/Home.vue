@@ -26,20 +26,27 @@ export default defineComponent({
 		}
 	},
 	created() {
-		if (this.$route.params.id)
+		if (this.$route.params.id !== "" && this.$route.params.id !== undefined) {
 			this.imageSelectedId = parseInt(this.$route.params.id as string);
+		}
 		else
-			this.imageSelectedId = this.images.keys().next().value;
+			this.updateImageSelectedId();
 	},
 	watch: {
 		images() {
-			this.imageSelectedId = this.images.keys().next().value;
+			this.updateImageSelectedId();
 		},
 		imageSelectedId() {
 			this.sure = false;
 		}
 	},
 	methods: {
+		updateImageSelectedId() {
+			if (this.images.size === 0)
+				this.imageSelectedId = -1;
+			else
+				this.imageSelectedId = this.images.keys().next().value;
+		},
 		confirmDelete() {
 			if (this.sure)
 				this.$emit('delete', this.imageSelectedId);
@@ -63,7 +70,7 @@ export default defineComponent({
 })
 </script>
 <template>
-	<div class="flex" v-if="images.keys != null">
+	<div class="flex" v-if="images.size > 0">
 		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()" class="home"
 			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images">
 		</Image>
@@ -91,77 +98,11 @@ export default defineComponent({
 	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
-/* SELECT */
+@import url(@/customSelect.css);
 
-.custom-select {
-	width: 100%;
-	text-align: left;
-	outline: none;
-	height: 47px;
-	line-height: 47px;
+h1 {
+	color: white;
 }
-
-.custom-select .selected {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	background-color: #1a1a1a;
-	border-radius: 6px;
-	/* border: 1px solid #666666; */
-	color: #fff;
-	padding-left: 1em;
-	cursor: pointer;
-	user-select: none;
-	border: 1px solid transparent;
-}
-
-.custom-select .selected:hover {
-	border-color: #646cff;
-}
-
-.custom-select span {
-	padding-right: 1rem;
-}
-
-.custom-select .selected.open {
-	border: 1px solid #646cff;
-	border-radius: 6px 6px 0px 0px;
-}
-
-.custom-select .selected:after {
-	content: "";
-	margin-right: 15px;
-	margin-top: 5px;
-	border: 5px solid transparent;
-	border-color: #fff transparent transparent transparent;
-}
-
-.custom-select .items {
-	color: #fff;
-	border-radius: 0px 0px 6px 6px;
-	overflow: hidden;
-	border-right: 1px solid #646cff;
-	border-left: 1px solid #646cff;
-	border-bottom: 1px solid #646cff;
-	background-color: #1a1a1a;
-}
-
-.custom-select .items div {
-	color: #fff;
-	padding-left: 1em;
-	cursor: pointer;
-	user-select: none;
-}
-
-.custom-select .items div:hover {
-	background-color: #646cff;
-}
-
-.selectHide {
-	display: none;
-}
-
-/* FIN SELECT */
 
 a {
 	text-decoration: none;
@@ -204,8 +145,10 @@ label {
 <style>
 .home.imageContainer {
 	max-width: 60%;
+	width: auto;
+	height: auto;
 	max-height: 60vh;
-	margin: 2vw;
+	margin: 0 0 2vw 0;
 }
 
 div.home.imageContainer:hover {
