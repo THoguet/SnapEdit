@@ -16,15 +16,19 @@ export default defineComponent({
 </script>
 
 <template>
-	<div class="flex" v-if="images.keys !== null">
+	<div class="flex" v-if="images.size > 0">
 		<div v-for="[id, image] in images" :key="id" class="image">
 			<label>{{ image.name }}</label>
 			<Image class="gallery" :id="id" :images="images" redirect="home" />
 		</div>
 	</div>
-	<h1 v-else>No image found</h1>
+	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
+h1 {
+	color: white;
+}
+
 .flex {
 	display: flex;
 	flex-direction: row;
@@ -58,6 +62,9 @@ label {
 <style>
 .gallery.imageContainer {
 	margin: 2vw;
-	height: max(33vh, calc(90vh/v-bind('images.size')));
+	max-height: min(33vh, 33vw);
+	max-width: min(33vw, 33vh);
+	height: auto;
+	width: auto;
 }
 </style>
