@@ -205,6 +205,7 @@ label {
 .home.imageContainer {
 	max-width: 60%;
 	max-height: 60vh;
+	margin: 2vw;
 }
 
 div.home.imageContainer:hover {

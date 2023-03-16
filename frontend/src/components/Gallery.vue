@@ -56,10 +56,8 @@ label {
 }
 </style>
 <style>
-.gallery.imageContainer img {
-	margin: 5px;
-	max-width: max(33vw, calc(90vw/v-bind('images.size')));
-	max-height: max(33vh, calc(90vh/v-bind('images.size')));
+.gallery.imageContainer {
 	margin: 2vw;
+	height: max(33vh, calc(90vh/v-bind('images.size')));
 }
 </style>
