@@ -23,24 +23,22 @@ export default defineComponent({
 		}
 	},
 	methods: {
-		async updateImageList(sleep: number) {
-			setTimeout(() => {
-				api.getImageList().then((newImages) => {
-					const newImageList = new Map<number, ImageType>();
-					for (const image of newImages.values())
-						newImageList.set(image.id, image);
-					this.images = newImageList;
-				})
-			}, sleep);
+		async updateImageList() {
+			api.getImageList().then((newImages) => {
+				const newImageList = new Map<number, ImageType>();
+				for (const image of newImages.values())
+					newImageList.set(image.id, image);
+				this.images = newImageList;
+			});
 		},
 		deleteFile(id: number) {
 			api.deleteImage(id).then(() => {
-				this.updateImageList(100);
+				this.updateImageList();
 			})
 		}
 	},
 	created() {
-		this.updateImageList(0);
+		this.updateImageList();
 	}
 })
 </script>
@@ -57,7 +55,7 @@ export default defineComponent({
 		</div>
 	</header>
 	<div class="content">
-		<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList(100)" />
+		<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList()" />
 	</div>
 </template>
 <style scoped>
