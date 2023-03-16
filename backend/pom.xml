@@ -28,6 +28,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.boofcv</groupId>
+			<artifactId>boofcv-core</artifactId>
+			<version>0.41</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -54,7 +59,7 @@
 									<includes>
 										<include>static/</include>
 										<include>index.html</include>
-										<include>favicon.ico</include>
+										<include>favicon.svg</include>
 									</includes>
 								</resource>
 							</resources>

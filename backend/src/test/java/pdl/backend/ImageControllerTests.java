@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,8 +39,24 @@ public class ImageControllerTests {
 	@Test
 	@Order(1)
 	public void getImageListShouldReturnSuccess() throws Exception {
+		ReflectionTestUtils.setField(Image.class, "count", Long.valueOf(0));
+		ImageDao imageDao = new ImageDao();
+		var images = imageDao.retrieveAll();
 		this.mockMvc.perform(get("/images")).andDo(print()).andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON));
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andDo(print())
+				.andExpect(jsonPath("$[0].id").value(String.valueOf(images.get(0).getId())))
+				.andExpect(jsonPath("$[0].name").value(images.get(0).getName()))
+				.andExpect(jsonPath("$[0].size").value(images.get(0).getSize()))
+				.andExpect(jsonPath("$[0].type").value(images.get(0).getMediaType().toString()))
+				.andExpect(jsonPath("$[2].id").value(String.valueOf(images.get(2).getId())))
+				.andExpect(jsonPath("$[2].name").value(images.get(2).getName()))
+				.andExpect(jsonPath("$[2].size").value(images.get(2).getSize()))
+				.andExpect(jsonPath("$[2].type").value(images.get(2).getMediaType().toString()))
+				.andExpect(jsonPath("$[4].id").value(String.valueOf(images.get(4).getId())))
+				.andExpect(jsonPath("$[4].name").value(images.get(4).getName()))
+				.andExpect(jsonPath("$[4].size").value(images.get(4).getSize()))
+				.andExpect(jsonPath("$[4].type").value(images.get(4).getMediaType().toString()));
 	}
 
 	@Test
@@ -69,7 +86,7 @@ public class ImageControllerTests {
 	@Test
 	@Order(6)
 	public void deleteImageShouldReturnSuccess() throws Exception {
-		this.mockMvc.perform(delete("/images/0")).andDo(print()).andExpect(status().isOk());
+		this.mockMvc.perform(delete("/images/0")).andDo(print()).andExpect(status().isNoContent());
 	}
 
 	@Test
