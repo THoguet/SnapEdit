@@ -18,7 +18,9 @@ export default defineComponent({
 		return {
 			file: null as FileList | null,
 			titleSendButton: "Envoyer",
-			classSendButton: ""
+			classSendButton: "",
+			requestSent: 0,
+			requestEnded: 0,
 		}
 	},
 	props: {
@@ -39,16 +41,15 @@ export default defineComponent({
 				this.classSendButton = "error"
 				return;
 			}
+			this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.file.length + ")";
 			Array.from(this.file).forEach((file, id) => {
-
 				let formData = new FormData();
 				formData.append('file', file);
-				api.createImage(formData);
+				this.requestSent++;
+				const resp = api.createImage(formData);
+				resp.then(() => { this.requestEnded++; })
 			});
-			this.$emit('updateImageList');
 			this.resetFile();
-			this.titleSendButton = "Envoyé"
-			this.classSendButton = "sent"
 		},
 		handleFilesUpload(event: InputFileEvent) {
 			this.file = event.target.files;
@@ -89,6 +90,16 @@ export default defineComponent({
 					}
 				};
 			});
+		},
+		requestEnded() {
+			if (this.requestEnded === this.requestSent) {
+				this.titleSendButton = "Images envoyées"
+				this.classSendButton = "sent"
+				this.$emit('updateImageList');
+				this.requestSent = 0;
+				this.requestEnded = 0;
+			} else
+				this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.requestSent + ")";
 		}
 	}
 })
@@ -99,7 +110,7 @@ export default defineComponent({
 		<div class="inputform" for="fileUpload">
 			<input style="position: absolute; left: -9999px; opacity: 0;" class="fileUpload" id="fileUpload" type="file"
 				@change="handleFilesUpload($event as InputFileEvent)" accept="image/png, image/jpeg" multiple />
-			<label class="button" for="fileUpload" id="labelInput">Choisir une ou plusieurs image(s)...</label>
+			<label class="button" for="fileUpload" id="labelInput"><span>Choisir une ou plusieurs image(s)...</span></label>
 			<label class="filename button" for="fileUpload">{{ nameLabelInput() }}</label>
 		</div>
 		<button class="button" :class="classSendButton" @click="submitImage()" @mouseleave="resetSendButton()">{{
@@ -126,6 +137,7 @@ img {
 	align-items: center;
 	justify-content: space-evenly;
 	gap: 20px;
+	flex-wrap: wrap;
 }
 
 label {
@@ -147,11 +159,16 @@ h2 {
 	color: black;
 	border: 1px solid #1a1a1a;
 	border-radius: 0 8px 8px 0;
+	/* white-space: nowrap; */
 }
 
 #labelInput {
 	border-radius: 8px 0 0 8px;
 	background-color: #1a1a1a;
+}
+
+.inputform {
+	flex-shrink: 0;
 }
 
 .inputform:hover label {
@@ -164,6 +181,7 @@ h2 {
 	align-items: center;
 	justify-content: space-evenly;
 	flex-wrap: wrap;
+	white-space: nowrap;
 }
 
 .imagePreview {
@@ -193,5 +211,16 @@ h2 {
 .sent {
 	color: green;
 	font-weight: bold;
+}
+
+@media screen and (max-width: 600px) {
+	.filename {
+		display: none;
+	}
+
+	#labelInput {
+		border-radius: 8px;
+	}
+
 }
 </style>
