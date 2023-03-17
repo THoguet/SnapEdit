@@ -5,14 +5,14 @@ public class Parameter {
 	private final String displayName;
 	private final int min;
 	private final int max;
-	private final boolean mustBeOdd;
+	private final int step;
 
-	public Parameter(String name, String displayName, int min, int max, boolean mustBeOdd) {
+	public Parameter(String name, String displayName, int min, int max, int step) {
 		this.name = name;
 		this.displayName = displayName;
 		this.max = max;
 		this.min = min;
-		this.mustBeOdd = mustBeOdd;
+		this.step = step;
 	}
 
 	public String getName() {
@@ -31,7 +31,7 @@ public class Parameter {
 		return this.max;
 	}
 
-	public boolean mustBeOdd() {
-		return this.mustBeOdd;
+	public int getStep() {
+		return this.step;
 	}
 }

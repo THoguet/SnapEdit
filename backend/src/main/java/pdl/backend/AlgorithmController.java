@@ -31,14 +31,14 @@ public class AlgorithmController {
 		algorithms.add(algo);
 		algo = new Algorithm("Détection de contours", "contours");
 		algorithms.add(algo);
-		algo = new Algorithm("Histogramme", "histogram");
+		algo = new Algorithm("Égalisation d'histogramme", "histogram");
 		algorithms.add(algo);
 
 		ArrayNode nodes = mapper.createArrayNode();
 		for (Algorithm a : algorithms) {
 			ObjectNode objectNode = mapper.createObjectNode();
 			objectNode.put("name", a.getName());
-			objectNode.put("pass", a.getPath());
+			objectNode.put("path", a.getPath());
 			ArrayNode parameters = objectNode.putArray("parameters");
 			for (Parameter p : a.getParameters()) {
 				ObjectNode paramNode = mapper.createObjectNode();
@@ -46,7 +46,7 @@ public class AlgorithmController {
 				paramNode.put("displayName", p.getDisplayName());
 				paramNode.put("min", p.getMin());
 				paramNode.put("max", p.getMax());
-				paramNode.put("mustBeOdd", p.mustBeOdd());
+				paramNode.put("step", p.getStep());
 				parameters.add(paramNode);
 			}
 			nodes.add(objectNode);
