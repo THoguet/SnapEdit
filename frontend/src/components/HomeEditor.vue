@@ -22,7 +22,8 @@ export default defineComponent({
 				new Filter("Filter moyenneur", "meanFilter", [new Arg("size", 1, 100, 2)]),
 				new Filter("Filtre gaussien", "gaussianFilter", [new Arg("size", 1, 100, 2)]),
 				new Filter("Filtre de contours", "contours", []),
-			]
+			],
+			error: false,
 		}
 	},
 	methods: {
@@ -31,8 +32,13 @@ export default defineComponent({
 				this.$emit("applyFilter", undefined);
 				return;
 			}
-			const filter = this.filters[this.filterSelectId - 1];
-			filter.updated = true;
+			const filter = this.filters[this.filterSelectId - 1].clone();
+			for (const arg of filter.args) {
+				if (arg.value === undefined) {
+					this.error = true;
+					return;
+				}
+			}
 			this.$emit("applyFilter", filter);
 		}
 	}
@@ -55,15 +61,13 @@ export default defineComponent({
 				</div>
 			</div>
 		</div>
-		<div v-if="filterSelectId !== 0">
-			<div v-for="argument in filters[filterSelectId - 1].args">
-				<label>{{ argument.name }}: ({{ argument.value }}) </label>
-				<input type="range" :id="filters[filterSelectId - 1].name + '-' + argument.name" :min="argument.min"
-					:max="argument.max" :ref="filters[filterSelectId - 1].name + '-' + argument.name" :step="argument.step"
-					v-model.number="argument.value">
-			</div>
+		<div v-if="filterSelectId !== 0" v-for="argument in filters[filterSelectId - 1].args" class="rangeInput">
+			<label>{{ argument.name }}: ({{ argument.value }}) </label>
+			<input type="range" :min="argument.min" :max="argument.max" :step="argument.step"
+				v-model.number="argument.value" />
 		</div>
-		<button class="button" @click="applyFilter()">Appliquer le filter</button>
+		<button @mouseleave="error = false" class="button" :class="{ erreurClass: error }" @click="applyFilter()">
+			{{ error ? "Erreur" : "Appliquer le filter" }}</button>
 	</div>
 </template>
 
@@ -72,6 +76,10 @@ export default defineComponent({
 
 label {
 	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
 }
 
 .editor {
@@ -80,5 +88,10 @@ label {
 	justify-content: center;
 	align-items: center;
 	gap: 10px;
+}
+
+.erreurClass {
+	background-color: red;
+	color: white;
 }
 </style>

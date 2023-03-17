@@ -72,7 +72,6 @@ export default defineComponent({
 @import url(@/customSelect.css);
 
 .selector {
-	margin-bottom: 5%;
 	display: flex;
 	flex-direction: row;
 	align-content: center;

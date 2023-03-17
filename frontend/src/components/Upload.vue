@@ -41,6 +41,8 @@ export default defineComponent({
 				this.classSendButton = "error"
 				return;
 			}
+			this.requestEnded = 0;
+			this.requestSent = 0;
 			this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.file.length + ")";
 			Array.from(this.file).forEach((file, id) => {
 				let formData = new FormData();
@@ -93,11 +95,12 @@ export default defineComponent({
 		},
 		requestEnded() {
 			if (this.requestEnded === this.requestSent) {
-				this.titleSendButton = "Images envoyées"
+				if (this.requestEnded > 1)
+					this.titleSendButton = "Images envoyées"
+				else
+					this.titleSendButton = "Image envoyée"
 				this.classSendButton = "sent"
 				this.$emit('updateImageList');
-				this.requestSent = 0;
-				this.requestEnded = 0;
 			} else
 				this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.requestSent + ")";
 		}
@@ -169,6 +172,14 @@ h2 {
 
 .inputform {
 	flex-shrink: 0;
+	display: flex;
+	height: 47px;
+}
+
+.inputform label {
+	height: 45px;
+	padding-top: 0;
+	padding-bottom: 0;
 }
 
 .inputform:hover label {
