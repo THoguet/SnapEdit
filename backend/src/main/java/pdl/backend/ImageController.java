@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.print.attribute.standard.Media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
