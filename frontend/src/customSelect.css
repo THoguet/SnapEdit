@@ -1,0 +1,67 @@
+.custom-select {
+	width: 100%;
+	text-align: left;
+	outline: none;
+	height: 47px;
+	line-height: 47px;
+}
+
+.custom-select .selected {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: #1a1a1a;
+	border-radius: 6px;
+	/* border: 1px solid #666666; */
+	color: #fff;
+	padding-left: 1em;
+	cursor: pointer;
+	user-select: none;
+	border: 1px solid transparent;
+}
+
+.custom-select .selected:hover {
+	border-color: #646cff;
+}
+
+.custom-select span {
+	padding-right: 1rem;
+}
+
+.custom-select .selected.open {
+	border: 1px solid #646cff;
+	border-radius: 6px 6px 0px 0px;
+}
+
+.custom-select .selected:after {
+	content: "";
+	margin-right: 15px;
+	margin-top: 5px;
+	border: 5px solid transparent;
+	border-color: #fff transparent transparent transparent;
+}
+
+.custom-select .items {
+	color: #fff;
+	border-radius: 0px 0px 6px 6px;
+	overflow: hidden;
+	border-right: 1px solid #646cff;
+	border-left: 1px solid #646cff;
+	border-bottom: 1px solid #646cff;
+	background-color: #1a1a1a;
+}
+
+.custom-select .items div {
+	color: #fff;
+	padding-left: 1em;
+	cursor: pointer;
+	user-select: none;
+}
+
+.custom-select .items div:hover {
+	background-color: #646cff;
+}
+
+.selectHide {
+	display: none;
+}

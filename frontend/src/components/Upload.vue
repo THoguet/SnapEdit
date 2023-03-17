@@ -16,8 +16,11 @@ export default defineComponent({
 	emits: ['updateImageList', 'delete'],
 	data() {
 		return {
-			sent: false,
-			file: null as FileList | null
+			file: null as FileList | null,
+			titleSendButton: "Envoyer",
+			classSendButton: "",
+			requestSent: 0,
+			requestEnded: 0,
 		}
 	},
 	props: {
@@ -28,32 +31,47 @@ export default defineComponent({
 	},
 	methods: {
 		async submitImage() {
-			if (this.sent === true || this.file === null)
+			if (this.classSendButton === "sent") {
+				this.titleSendButton = "Images déjà envoyées"
+				this.classSendButton = "error"
 				return;
+			}
+			if (this.file === null || this.file.length === 0) {
+				this.titleSendButton = "Aucune image sélectionnée"
+				this.classSendButton = "error"
+				return;
+			}
+			this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.file.length + ")";
 			Array.from(this.file).forEach((file, id) => {
-
 				let formData = new FormData();
 				formData.append('file', file);
-				api.createImage(formData);
+				this.requestSent++;
+				const resp = api.createImage(formData);
+				resp.then(() => { this.requestEnded++; })
 			});
-			this.sent = true;
-			this.$emit('updateImageList');
 			this.resetFile();
 		},
 		handleFilesUpload(event: InputFileEvent) {
 			this.file = event.target.files;
-			this.sent = false;
+			this.resetSendButton(true)
+
 		},
 		resetFile() {
 			this.file = null;
 			(document.getElementById('fileUpload') as HTMLInputElement).value = "";
 		},
-		titleSendButton() {
-			if (this.sent === true)
-				return "Envoyé";
-			if (this.file === null)
+		nameLabelInput() {
+			if (this.file === null || this.file.length === 0)
 				return "Aucune image sélectionnée";
-			return "Envoyer (" + this.file.length + " image(s) sélectionnée(s))";
+			if (this.file.length === 1)
+				return this.file[0].name;
+			return this.file.length + " images sélectionnées";
+		},
+		resetSendButton(force: boolean = false) {
+			if (force || this.classSendButton === "error") {
+				this.titleSendButton = "Envoyer"
+				this.classSendButton = ""
+			}
 		}
 	},
 	watch: {
@@ -72,54 +90,89 @@ export default defineComponent({
 					}
 				};
 			});
+		},
+		requestEnded() {
+			if (this.requestEnded === this.requestSent) {
+				this.titleSendButton = "Images envoyées"
+				this.classSendButton = "sent"
+				this.$emit('updateImageList');
+				this.requestSent = 0;
+				this.requestEnded = 0;
+			} else
+				this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.requestSent + ")";
 		}
 	}
 })
 
 </script>
 <template>
-	<div>
-		<label>Ajouter une ou plusieurs image(s):
-			<input id="fileUpload" type="file" @change="handleFilesUpload($event as InputFileEvent)" accept="image/jpeg"
-				multiple />
-		</label>
-		<button :class="sent ? 'green' : 'normal'" @click="submitImage()">{{ titleSendButton() }}</button>
-		<button v-if="file !== null" @click="resetFile()">Reinitialiser</button>
+	<div class="form">
+		<div class="inputform" for="fileUpload">
+			<input style="position: absolute; left: -9999px; opacity: 0;" class="fileUpload" id="fileUpload" type="file"
+				@change="handleFilesUpload($event as InputFileEvent)" accept="image/png, image/jpeg" multiple />
+			<label class="button" for="fileUpload" id="labelInput"><span>Choisir une ou plusieurs image(s)...</span></label>
+			<label class="filename button" for="fileUpload">{{ nameLabelInput() }}</label>
+		</div>
+		<button class="button" :class="classSendButton" @click="submitImage()" @mouseleave="resetSendButton()">{{
+			titleSendButton }}</button>
+		<button class="button" v-if="file !== null && file.length !== 0" @click="resetFile()">Reinitialiser</button>
 	</div>
-	<h2 v-if="file !== null">Preview :</h2>
+	<h2 v-if="file !== null && file.length !== 0">Preview :</h2>
 	<div class="previewBox">
-		<label v-for="(f, id) in (file as FileList)" :key="id" class="imageLabel">{{ (f as File).name }}:
+		<div class="imagePreview" v-for="(f, id) in (file as FileList)" :key="id">
+			<label>{{ (f as File).name }}</label>
 			<img :id="'preview-' + id" />
-		</label>
+		</div>
 	</div>
 </template>
 <style scoped>
 img {
 	max-width: 100%;
 	max-height: 90%;
-	border: 1px solid black;
+}
+
+.form {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-evenly;
+	gap: 20px;
+	flex-wrap: wrap;
 }
 
 label {
 	color: white;
 }
 
-input {
-	color: white;
-}
 
 h2 {
 	color: white;
 }
 
-.imageLabel {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	max-width: 33%;
-	height: 33vh;
-	margin: 5px;
+.fileUpload:focus~label,
+.fileUpload:focus-visible~label {
+	outline: 4px auto -webkit-focus-ring-color;
+}
+
+.filename {
+	background-color: white;
+	color: black;
+	border: 1px solid #1a1a1a;
+	border-radius: 0 8px 8px 0;
+	/* white-space: nowrap; */
+}
+
+#labelInput {
+	border-radius: 8px 0 0 8px;
+	background-color: #1a1a1a;
+}
+
+.inputform {
+	flex-shrink: 0;
+}
+
+.inputform:hover label {
+	border-color: #646cff;
 }
 
 .previewBox {
@@ -128,10 +181,46 @@ h2 {
 	align-items: center;
 	justify-content: space-evenly;
 	flex-wrap: wrap;
+	white-space: nowrap;
 }
 
-.green {
+.imagePreview {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	max-width: 33%;
+	height: 33vh;
+	margin: 5px;
+	padding: 0.5rem;
+	background-color: #1a1a1a;
+	color: white;
+	border-radius: 8px;
+	border: 1px solid transparent;
+}
+
+.imagePreview:hover {
+	border-color: #646cff;
+}
+
+.error {
+	color: red;
+	font-weight: bold;
+}
+
+.sent {
 	color: green;
 	font-weight: bold;
+}
+
+@media screen and (max-width: 600px) {
+	.filename {
+		display: none;
+	}
+
+	#labelInput {
+		border-radius: 8px;
+	}
+
 }
 </style>

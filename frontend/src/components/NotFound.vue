@@ -1,6 +1,7 @@
 <template>
 	<div>
-		<h1>404 NOT FOUND</h1>
+		<h1>Page introuvable...</h1>
+		<img src="@/assets/lost.gif" />
 	</div>
 </template>
 
@@ -9,5 +10,7 @@
 </script>
 
 <style scoped>
-
+h1 {
+	color: white;
+}
 </style>

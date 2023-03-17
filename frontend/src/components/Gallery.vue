@@ -16,16 +16,21 @@ export default defineComponent({
 </script>
 
 <template>
-	<div class="flex" v-if="images.keys !== null">
+	<div class="flex" v-if="images.size > 0">
 		<div v-for="[id, image] in images" :key="id" class="image">
 			<label>{{ image.name }}</label>
-			<Image class="gallery" :id="id" />
+			<Image class="gallery" :id="id" :images="images" redirect="home" />
 		</div>
 	</div>
-	<h1 v-else>No image found</h1>
+	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
+h1 {
+	color: white;
+}
+
 .flex {
+	margin-top: 100px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -38,6 +43,16 @@ export default defineComponent({
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	margin: 5px;
+	padding: 0.5rem;
+	background-color: #1a1a1a;
+	color: white;
+	border-radius: 8px;
+	border: 1px solid transparent;
+}
+
+.image:hover {
+	border-color: #646cff;
 }
 
 label {
@@ -46,10 +61,11 @@ label {
 }
 </style>
 <style>
-.gallery>img {
-	margin: 5px;
-	max-width: max(33vw, calc(90vw/v-bind('images.size')));
-	max-height: max(33vh, calc(90vh/v-bind('images.size')));
+.gallery.imageContainer {
 	margin: 2vw;
+	max-height: min(33vh, 33vw);
+	max-width: min(33vw, 33vh);
+	height: auto;
+	width: auto;
 }
 </style>

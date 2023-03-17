@@ -8,11 +8,6 @@ import { api } from '@/http-api'
 import { ImageType, ImageClass } from './image';
 </script>
 <script lang="ts">
-const routes: { [key: string]: string } = {
-	'/': "Home",
-	'Gallery': "Gallery",
-	'Upload': "Upload"
-}
 export default defineComponent({
 	components: {
 		Home,
@@ -24,45 +19,26 @@ export default defineComponent({
 		return {
 			images: new Map<Number, ImageType>(),
 			currentPath: window.location.hash,
-			sent: false,
 			file: null as FileList | null
 		}
 	},
-	computed: {
-		currentView(): string {
-			return routes[this.currentPath.slice(1) || '/'] || "notFound";
-		}
-	},
 	methods: {
-		async updateImageList(sleep: number) {
-			setTimeout(() => {
-				api.getImageList().then((newImages) => {
-					const newImageList = new Map<number, ImageType>();
-					for (const image of newImages.values())
-						newImageList.set(image.id, image);
-					this.images = newImageList;
-				})
-			}, sleep);
+		async updateImageList() {
+			api.getImageList().then((newImages) => {
+				const newImageList = new Map<number, ImageType>();
+				for (const image of newImages.values())
+					newImageList.set(image.id, image);
+				this.images = newImageList;
+			});
 		},
 		deleteFile(id: number) {
 			api.deleteImage(id).then(() => {
-				this.updateImageList(100);
+				this.updateImageList();
 			})
-		},
-		isActive(route: string) {
-			if (route === undefined) {
-				if (this.currentPath === "")
-					return 'router active';
-				route = "/";
-			}
-			return this.currentPath.endsWith(route) ? 'router active' : 'router';
 		}
 	},
-	mounted() {
-		this.updateImageList(0);
-		window.addEventListener('hashchange', () => {
-			this.currentPath = window.location.hash;
-		});
+	created() {
+		this.updateImageList();
 	}
 })
 </script>
@@ -71,15 +47,14 @@ export default defineComponent({
 		<div class="navi">
 			<nav>
 				<ul>
-					<li v-for="route in routes" :class="isActive(routes[route])">
-						<a :href="'#' + (routes[route] || '/')"> <span>{{ route }}</span></a>
-					</li>
+					<li><router-link :to="{ name: 'home' }">Home</router-link></li>
+					<li><router-link :to="{ name: 'gallery' }">Gallery</router-link></li>
+					<li><router-link :to="{ name: 'upload' }">Upload</router-link></li>
 				</ul>
 			</nav>
 		</div>
 	</header>
-	<component :is="currentView" :key="sent" :images="images" @delete="deleteFile"
-		@updateImageList="updateImageList(100)" />
+	<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList()" />
 </template>
 <style scoped>
 .navi {
@@ -108,21 +83,21 @@ ul>li {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 5px 15px;
-	border-radius: 60px;
 }
 
-.active {
-	background-color: #09c7aa;
+.router-link-active {
+	background-color: #646cff;
 }
 
-.active>a {
+.router-link-active>a {
 	color: rgb(205, 201, 194);
 }
 
 a {
+	padding: 5px 15px;
+	border-radius: 60px;
 	color: rgb(172, 165, 154);
-	text-decoration-color: initial;
+	text-decoration: none;
 	font-family: "Aeonik", sans-serif;
 }
 
