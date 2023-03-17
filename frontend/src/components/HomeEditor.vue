@@ -54,7 +54,7 @@ export default defineComponent({
 </script>
 <template>
 	<div class="editor">
-		<label>Selectioner un filtre: </label>
+		<label>Sélectionner un filtre: </label>
 		<div class="custom-select" @blur="open = false">
 			<div class="selected" :class="{ open: open }" @click="open = !open">
 				<span>{{ filterSelectId === 0 ? "Aucun filtre" : filters[filterSelectId - 1].name }}</span>

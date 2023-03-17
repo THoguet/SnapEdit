@@ -118,7 +118,7 @@ export default defineComponent({
 		</div>
 		<button class="button" :class="classSendButton" @click="submitImage()" @mouseleave="resetSendButton()">{{
 			titleSendButton }}</button>
-		<button class="button" v-if="file !== null && file.length !== 0" @click="resetFile()">Reinitialiser</button>
+		<button class="button" v-if="file !== null && file.length !== 0" @click="resetFile()">Réinitialiser</button>
 	</div>
 	<h2 v-if="file !== null && file.length !== 0">Preview :</h2>
 	<div class="previewBox">
