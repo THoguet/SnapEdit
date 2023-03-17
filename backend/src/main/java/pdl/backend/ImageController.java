@@ -195,16 +195,15 @@ public class ImageController {
 				}
 				break;
 			case "gaussienFilter":
-				if (!parameters.containsKey("size") || parameters.size() != 2)
-					return JSONError("Algorithm 'gaussienFilter' requires one parameter 'size'(positive odd integer)",
-							HttpStatus.BAD_REQUEST);
+				if (/* !parameters.containsKey("size") || */ parameters.size() != 1)
+					return JSONError("Algorithm 'gaussienFilter' requires no parameters", HttpStatus.BAD_REQUEST);
 				try {
-					int i = Integer.parseInt(parameters.get("size"));
-					if (i % 2 == 0)
-						return JSONError("Parameter 'size' should be a positive odd integer",
-								HttpStatus.BAD_REQUEST);
+					// int i = Integer.parseInt(parameters.get("size"));
+					// if (i % 2 == 0)
+					// return JSONError("Parameter 'size' should be a positive odd integer",
+					// HttpStatus.BAD_REQUEST);
 					Planar<GrayU8> clone = input.clone();
-					ImageProcessing.gaussienFilter(clone, input, i);
+					ImageProcessing.gaussienFilter(clone, input, 5);
 				} catch (NumberFormatException e) {
 					return JSONError("Parameter 'size' should be a positive odd integer",
 							HttpStatus.BAD_REQUEST);
@@ -223,6 +222,7 @@ public class ImageController {
 
 		// transforme l'image en quelque chose que le navigateur puisse lire
 		bufImg = ConvertBufferedImage.convertTo_U8(input, null, true);
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			ImageIO.write(bufImg, image.getMediaType().getSubtype(), baos);
@@ -230,7 +230,8 @@ public class ImageController {
 			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		byte[] imageData = baos.toByteArray();
-		InputStream inputStream = new ByteArrayInputStream(imageData);
+		InputStream inputStream = new ByteArrayInputStream(
+				imageData);
 		return ResponseEntity.ok().contentType(image.getMediaType()).body(new InputStreamResource(inputStream));
 	}
 }
