@@ -1,7 +1,8 @@
 <script setup lang="ts">
 
 import { defineComponent } from 'vue'
-import { Filter, Arg } from '@/filter'
+import { Filter, clone } from '@/filter'
+import { api } from "@/http-api";
 
 </script>
 <script lang="ts">
@@ -15,15 +16,22 @@ export default defineComponent({
 		return {
 			filterSelectId: 0,
 			open: false,
-			filters: [
-				new Filter("Luminosité", "changeLuminosity", [new Arg("delta", -255, 255)]),
-				new Filter("Egalisation d'histogramme", "histogram", []),
-				new Filter("Filtre de couleur", "colorFilter", [new Arg("hue", 0, 359)]),
-				new Filter("Filter moyenneur", "meanFilter", [new Arg("size", 1, 100, 2)]),
-				new Filter("Filtre gaussien", "gaussianFilter", [new Arg("size", 1, 100, 2)]),
-				new Filter("Filtre de contours", "contours", []),
-			]
+			filters: [] as Filter[],
+			// filters: [
+			// 	new Filter("Luminosité", "changeLuminosity", [new Arg("delta", -255, 255)]),
+			// 	new Filter("Egalisation d'histogramme", "histogram", []),
+			// 	new Filter("Filtre de couleur", "colorFilter", [new Arg("hue", 0, 359)]),
+			// 	new Filter("Filter moyenneur", "meanFilter", [new Arg("size", 1, 100, 2)]),
+			// 	new Filter("Filtre gaussien", "gaussianFilter", [new Arg("size", 1, 100, 2)]),
+			// 	new Filter("Filtre de contours", "contours", []),
+			// ],
+			error: false,
 		}
+	},
+	created() {
+		api.getAlgorithmList().then((filters) => {
+			this.filters = filters;
+		});
 	},
 	methods: {
 		applyFilter() {
@@ -31,8 +39,13 @@ export default defineComponent({
 				this.$emit("applyFilter", undefined);
 				return;
 			}
-			const filter = this.filters[this.filterSelectId - 1];
-			filter.updated = true;
+			const filter = clone(this.filters[this.filterSelectId - 1]);
+			for (const arg of filter.parameters) {
+				if (arg.value === undefined) {
+					this.error = true;
+					return;
+				}
+			}
 			this.$emit("applyFilter", filter);
 		}
 	}
@@ -41,7 +54,7 @@ export default defineComponent({
 </script>
 <template>
 	<div class="editor">
-		<label>Selectioner un filtre: </label>
+		<label>Sélectionner un filtre: </label>
 		<div class="custom-select" @blur="open = false">
 			<div class="selected" :class="{ open: open }" @click="open = !open">
 				<span>{{ filterSelectId === 0 ? "Aucun filtre" : filters[filterSelectId - 1].name }}</span>
@@ -55,15 +68,14 @@ export default defineComponent({
 				</div>
 			</div>
 		</div>
-		<div v-if="filterSelectId !== 0">
-			<div v-for="argument in filters[filterSelectId - 1].args">
-				<label>{{ argument.name }}: ({{ argument.value }}) </label>
-				<input type="range" :id="filters[filterSelectId - 1].name + '-' + argument.name" :min="argument.min"
-					:max="argument.max" :ref="filters[filterSelectId - 1].name + '-' + argument.name" :step="argument.step"
-					v-model.number="argument.value">
-			</div>
+		<div v-if="filters.length != 0 && filterSelectId !== 0" v-for="parameter in filters[filterSelectId - 1].parameters"
+			class="rangeInput">
+			<label>{{ parameter.name }}: ({{ parameter.value }}) </label>
+			<input type="range" :min="parameter.min" :max="parameter.max" :step="parameter.step"
+				v-model.number="parameter.value" />
 		</div>
-		<button class="button" @click="applyFilter()">Appliquer le filter</button>
+		<button @mouseleave="error = false" class="button" :class="{ erreurClass: error }" @click="applyFilter()">
+			{{ error ? "Erreur" : "Appliquer le filtre" }}</button>
 	</div>
 </template>
 
@@ -72,6 +84,10 @@ export default defineComponent({
 
 label {
 	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
 }
 
 .editor {
@@ -80,5 +96,10 @@ label {
 	justify-content: center;
 	align-items: center;
 	gap: 10px;
+}
+
+.erreurClass {
+	background-color: red;
+	color: white;
 }
 </style>

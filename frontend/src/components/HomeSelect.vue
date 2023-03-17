@@ -51,7 +51,7 @@ export default defineComponent({
 
 <template>
 	<div class="selector">
-		<label>Selectioner une image: </label>
+		<label>Sélectionner une image: </label>
 		<div class="custom-select" @blur="open = false">
 			<div class="selected" :class="{ open: open }" @click="open = !open">
 				<span>{{ images.get(imageSelectedId)?.name }}</span>
@@ -72,7 +72,6 @@ export default defineComponent({
 @import url(@/customSelect.css);
 
 .selector {
-	margin-bottom: 5%;
 	display: flex;
 	flex-direction: row;
 	align-content: center;

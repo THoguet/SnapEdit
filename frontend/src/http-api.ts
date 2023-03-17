@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, AxiosError, HttpStatusCode } from 'axios';
 import { ImageType } from '@/image';
-import { Filter } from './filter';
+import { Filter, getParameters } from './filter';
 
 const instance = axios.create({
 	baseURL: "/",
@@ -19,7 +19,8 @@ const requests = {
 
 export const api = {
 	getImageList: (): Promise<ImageType[]> => requests.get('images', {}),
-	getImage: (id: number, filter: Filter | undefined): Promise<Blob> => requests.get(`images/${id}${filter !== undefined ? "?algorithm=" + filter.path + filter.getArgs() : ""}`, { responseType: "blob" }),
+	getAlgorithmList: (): Promise<Filter[]> => requests.get('algorithms', {}),
+	getImage: (id: number, filter: Filter | undefined): Promise<Blob> => requests.get(`images/${id}${filter !== undefined ? "?algorithm=" + filter.path + getParameters(filter) : ""}`, { responseType: "blob" }),
 	createImage: (form: FormData): Promise<HttpStatusCode> => requests.post('images', form),
 	deleteImage: (id: number): Promise<void> => requests.delete(`images/${id}`),
 };

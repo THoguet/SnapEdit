@@ -28,22 +28,14 @@ export default defineComponent({
 		}
 	},
 	methods: {
-		getImage(id: number, force: boolean = false) {
-			if (!force && this.images.has(id) && this.images.get(id)!.data != null) {
+		getImage(id: number) {
+			if (this.images.has(id) && this.images.get(id)!.data != null)
 				this.data = this.images.get(id)!.data;
-			} else {
+			else
 				this.downloadImage(id);
-			}
 		},
 		async downloadImage(id: number) {
-			let f = this.filter;
-			if (this.filter !== undefined) {
-				if (this.filter.updated)
-					this.filter.updated = false;
-				else
-					f = undefined;
-			}
-			const data = await api.getImage(id, f);
+			const data = await api.getImage(id, this.filter);
 			const reader = new window.FileReader();
 			reader.readAsDataURL(data);
 			reader.onload = () => {
@@ -61,9 +53,8 @@ export default defineComponent({
 		},
 		filter: {
 			handler() {
-				this.getImage(this.id, true);
-			},
-			deep: true
+				this.downloadImage(this.id);
+			}
 		}
 	}
 })

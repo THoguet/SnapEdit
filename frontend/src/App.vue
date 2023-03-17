@@ -18,7 +18,6 @@ export default defineComponent({
 	data() {
 		return {
 			images: new Map<Number, ImageType>(),
-			currentPath: window.location.hash,
 			file: null as FileList | null
 		}
 	},
@@ -32,9 +31,8 @@ export default defineComponent({
 			});
 		},
 		deleteFile(id: number) {
-			api.deleteImage(id).then(() => {
-				this.updateImageList();
-			})
+			this.images.delete(id);
+			api.deleteImage(id);
 		}
 	},
 	created() {

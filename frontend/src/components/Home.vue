@@ -35,8 +35,8 @@ export default defineComponent({
 			this.updateImageSelectedId();
 	},
 	watch: {
-		images() {
-			this.updateImageSelectedId();
+		'images.size': {
+			handler() { this.updateImageSelectedId(); },
 		},
 	},
 	methods: {
@@ -66,27 +66,31 @@ export default defineComponent({
 </script>
 <template>
 	<div class="flex" v-if="images.size > 0">
-		<h3 v-if="!editor">Restez sur l'image pour passer en mode éditeur</h3>
-		<h3 v-else>Restez sur l'image pour passer en mode selection</h3>
-		<a class="button" :href="images.get(imageSelectedId)?.data"
-			:download="images.get(imageSelectedId)?.name">Télécharger {{ images.get(imageSelectedId)?.name }}</a>
+		<h1 v-if="!editor">MODE SÉLECTION</h1>
+		<h1 v-else>MODE ÉDITEUR</h1>
+		<HomeSelect v-if="!editor" :images="images" :image-selected-id="imageSelectedId" @delete="id => $emit('delete', id)"
+			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
+		<HomeEditor v-else @apply-filter="(newFilter) => filter = newFilter"></HomeEditor>
+		<h5 v-if="!editor">Restez sur l'image pour passer en mode éditeur</h5>
+		<h5 v-else>Restez sur l'image pour passer en mode selection</h5>
 		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()" class="home"
 			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images"
 			:filter="filter">
 		</Image>
-		<HomeSelect v-if="!editor" :images="images" :image-selected-id="imageSelectedId" @delete="id => $emit('delete', id)"
-			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
-		<HomeEditor v-else @apply-filter="(newFilter) => filter = newFilter"></HomeEditor>
+		<a class="button" :href="images.get(imageSelectedId)?.data"
+			:download="images.get(imageSelectedId)?.name">Télécharger {{ images.get(imageSelectedId)?.name }}</a>
 	</div>
 	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
 h1 {
 	color: white;
+	margin: 0;
 }
 
-h3 {
+h5 {
 	color: white;
+	margin: 1vw 0 0 0;
 }
 
 a {
@@ -110,7 +114,7 @@ html {
 	width: auto;
 	height: auto;
 	max-height: 60vh;
-	margin: 2vw 0;
+	margin: 0 0 2vw 0;
 }
 
 div.home.imageContainer:hover {
