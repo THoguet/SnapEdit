@@ -3,7 +3,7 @@
 	text-align: left;
 	outline: none;
 	height: 47px;
-	line-height: 47px;
+	line-height: 45px;
 }
 
 .custom-select .selected {
@@ -42,6 +42,7 @@
 }
 
 .custom-select .items {
+	position: sticky;
 	color: #fff;
 	border-radius: 0px 0px 6px 6px;
 	overflow: hidden;
@@ -49,6 +50,9 @@
 	border-left: 1px solid #646cff;
 	border-bottom: 1px solid #646cff;
 	background-color: #1a1a1a;
+	overflow-y: auto;
+	max-height: 50vh;
+	z-index: 1;
 }
 
 .custom-select .items div {
