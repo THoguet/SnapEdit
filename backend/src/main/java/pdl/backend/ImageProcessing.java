@@ -404,28 +404,4 @@ public class ImageProcessing {
 			}
 		}
 	}
-
-	public static void main(final String[] args) {
-		// load image
-		// if (args.length < 2) {
-		// System.out.println("missing input or output image filename");
-		// System.exit(-1);
-		// }
-		final String inputPath = "backend/src/main/resources/images/mountains.jpg";
-		BufferedImage image = UtilImageIO.loadImage(inputPath);
-		Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(image, null, true, GrayU8.class);
-		Planar<GrayU8> output = input.createSameShape();
-		long beginning = System.nanoTime();
-		meanFilter(input, output, 15);
-		long end = System.nanoTime();
-		System.out.println("Duration : " + ((end - beginning) / 1000000) + "ms");
-
-		long beginning2 = System.nanoTime();
-		long end2 = System.nanoTime();
-		System.out.println("Duration : " + ((end2 - beginning2) / 1000000) + "ms");
-		// save output image
-		final String outputPath = "backend/src/main/resources/images/mountains.jpg";
-		UtilImageIO.saveImage(input, outputPath);
-		System.out.println("Image saved in: " + outputPath);
-	}
 }
