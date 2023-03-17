@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
@@ -108,43 +107,6 @@ public class ImageController {
 			objectNode.put("name", image.getName());
 			objectNode.put("size", image.getSize());
 			objectNode.put("type", image.getMediaType().toString());
-			nodes.add(objectNode);
-		}
-		return nodes;
-	}
-
-	@GetMapping(value = "/algorithms", produces = "application/json")
-	@ResponseBody
-	public ArrayNode getAlgorithmList() {
-		ArrayList<Algorithm> algorithms = new ArrayList<Algorithm>();
-		Algorithm algo = new Algorithm("Changement de luminosité", "changeLuminosity");
-		algorithms.add(algo);
-		algo = new Algorithm("Changement de teinte", "colorFilter");
-		algorithms.add(algo);
-		algo = new Algorithm("Filtre Moyenneur", "meanFilter");
-		algorithms.add(algo);
-		algo = new Algorithm("Filtre Gaussien", "gaussienFilter");
-		algorithms.add(algo);
-		algo = new Algorithm("Détection de contours", "contours");
-		algorithms.add(algo);
-		algo = new Algorithm("Histogramme", "histogram");
-		algorithms.add(algo);
-
-		ArrayNode nodes = mapper.createArrayNode();
-		for (Algorithm a : algorithms) {
-			ObjectNode objectNode = mapper.createObjectNode();
-			objectNode.put("name", a.getName());
-			objectNode.put("pass", a.getPass());
-			ArrayNode parameters = objectNode.putArray("parameters");
-			for (Parameter p : a.getParameters()) {
-				ObjectNode paramNode = mapper.createObjectNode();
-				paramNode.put("name", p.getName());
-				paramNode.put("displayName", p.getDisplayName());
-				paramNode.put("min", p.getMin());
-				paramNode.put("max", p.getMax());
-				paramNode.put("mustBeOdd", p.mustBeOdd());
-				parameters.add(paramNode);
-			}
 			nodes.add(objectNode);
 		}
 		return nodes;

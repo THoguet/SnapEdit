@@ -7,14 +7,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class Algorithm {
 	private final String name;
-	private final String pass;
+	private final String path;
 	private final ArrayList<Parameter> parameters;
 
-	public Algorithm(String name, String pass) {
+	public Algorithm(String name, String path) {
 		this.name = name;
-		this.pass = pass;
+		this.path = path;
 		this.parameters = new ArrayList<>();
-		switch (pass) {
+		switch (path) {
 			case "changeLuminosity":
 				Parameter param1 = new Parameter("delta", "", -255, 255, false);
 				this.parameters.add(param1);
@@ -45,8 +45,8 @@ public class Algorithm {
 		return this.name;
 	}
 
-	public String getPass() {
-		return this.pass;
+	public String getPath() {
+		return this.path;
 	}
 
 	public ArrayList<Parameter> getParameters() {
