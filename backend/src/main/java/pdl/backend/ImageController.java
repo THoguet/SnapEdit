@@ -55,7 +55,7 @@ public class ImageController {
 	 *
 	 * @param message Le message d'erreur à afficher
 	 * @param status  La valeur de l'erreur
-	 * @return Un ResponseEntity
+	 * @return Une ResponseEntity
 	 */
 	public ResponseEntity<?> JSONError(String message, HttpStatus status) {
 		ObjectNode objectNode = mapper.createObjectNode();
