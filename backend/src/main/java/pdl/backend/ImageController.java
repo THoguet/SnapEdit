@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.print.attribute.standard.Media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -56,7 +55,7 @@ public class ImageController {
 	 *
 	 * @param message Le message d'erreur à afficher
 	 * @param status  La valeur de l'erreur
-	 * @return Une ResponseEntity
+	 * @return Un ResponseEntity
 	 */
 	public ResponseEntity<?> JSONError(String message, HttpStatus status) {
 		ObjectNode objectNode = mapper.createObjectNode();
@@ -67,6 +66,12 @@ public class ImageController {
 		return new ResponseEntity<>(objectNode, httpHeaders, status);
 	}
 
+	/**
+	 * Supprime une image
+	 *
+	 * @param id le matricule de l'image à supprimer
+	 * @return Un code ResponseEntity
+	 */
 	@DeleteMapping(value = "/images/{id}")
 	public ResponseEntity<?> deleteImage(@PathVariable("id") long id) {
 		var img = imageDao.retrieve(id);
@@ -76,12 +81,19 @@ public class ImageController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
+	/**
+	 * Poste une image
+	 *
+	 * @param file               l'image à ajouter
+	 * @param redirectAttributes
+	 * @return Une ResponseEntity
+	 */
 	@PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<?> addImage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
 		String contentType = file.getContentType();
 		if (contentType == null
 				|| (!contentType.equals(MediaType.IMAGE_JPEG_VALUE) && !contentType.equals(MediaType.IMAGE_PNG_VALUE)))
-			return JSONError("Content type " + contentType + "isn't supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			return JSONError("Content type " + contentType + "is not supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 		try {
 			Image newImg = new Image(file.getOriginalFilename(), file.getBytes());
 			imageDao.create(newImg);
@@ -92,11 +104,21 @@ public class ImageController {
 		}
 	}
 
+	/**
+	 * Supprime toutes les images postées
+	 *
+	 * @return Une ResponseEntity
+	 */
 	@DeleteMapping(value = "/images")
 	public ResponseEntity<?> deleteImagesList() {
 		return JSONError("Method DELETE not allowed for /images", HttpStatus.METHOD_NOT_ALLOWED);
 	}
 
+	/**
+	 * Récupère toutes les images
+	 *
+	 * @return un ArrayNode contenant toutes les images à récupérer
+	 */
 	@GetMapping(value = "/images", produces = "application/json")
 	@ResponseBody
 	public ArrayNode getImageList() {
@@ -113,6 +135,14 @@ public class ImageController {
 		return nodes;
 	}
 
+	/**
+	 * récupère une image et la modifie si un algorithme est renseigné
+	 *
+	 * @param id         le matricule de l'image à récupérer
+	 * @param parameters une String qui contient le reste des paramètres :
+	 *                   l'algorithme à utiliser ainsi que ses paramètres
+	 * @return Une ResponseEntity
+	 */
 	@GetMapping(value = "/images/{id}", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE,
 			"application/json" })
 	public ResponseEntity<?> getImage(@PathVariable("id") long id,
