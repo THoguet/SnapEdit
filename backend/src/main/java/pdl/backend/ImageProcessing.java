@@ -3,11 +3,7 @@ package pdl.backend;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 
-import java.awt.image.BufferedImage;
-
 import boofcv.concurrency.BoofConcurrency;
-import boofcv.io.image.ConvertBufferedImage;
-import boofcv.io.image.UtilImageIO;
 
 public class ImageProcessing {
 
@@ -367,15 +363,16 @@ public class ImageProcessing {
 		int[][] kernel = { { 1, 2, 3, 2, 1 }, { 2, 6, 8, 6, 2 }, { 3, 8, 10, 8, 3 }, { 2, 6, 8, 6, 2 },
 				{ 1, 2, 3, 2, 1 } };
 		int half = size / 2;
-		int totalCoefs = 0;
+		int coefs = 0;
 		// Calcul du nombre total de coefficients dans le noyau
 		for (int i = 0; i < kernel.length; i++) {
 			for (int j = 0; j < kernel[i].length; j++) {
-				totalCoefs += kernel[i][j];
+				coefs += kernel[i][j];
 			}
 		}
+		final int totalCoefs = coefs;
 		// Parcours de l'image d'entrée et application de la convolution
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				// Vérification si le carré sera à l'intérieur de l'image
 				if (y < half || x < half || y >= input.height - half || x >= input.width -
@@ -402,6 +399,6 @@ public class ImageProcessing {
 				}
 				setRGBValue(output, x, y, totalValue);
 			}
-		}
+		});
 	}
 }
