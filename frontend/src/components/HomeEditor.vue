@@ -1,7 +1,8 @@
 <script setup lang="ts">
 
 import { defineComponent } from 'vue'
-import { Filter, Arg } from '@/filter'
+import { Filter, clone } from '@/filter'
+import { api } from "@/http-api";
 
 </script>
 <script lang="ts">
@@ -15,16 +16,22 @@ export default defineComponent({
 		return {
 			filterSelectId: 0,
 			open: false,
-			filters: [
-				new Filter("Luminosité", "changeLuminosity", [new Arg("delta", -255, 255)]),
-				new Filter("Egalisation d'histogramme", "histogram", []),
-				new Filter("Filtre de couleur", "colorFilter", [new Arg("hue", 0, 359)]),
-				new Filter("Filter moyenneur", "meanFilter", [new Arg("size", 1, 100, 2)]),
-				new Filter("Filtre gaussien", "gaussianFilter", [new Arg("size", 1, 100, 2)]),
-				new Filter("Filtre de contours", "contours", []),
-			],
+			filters: [] as Filter[],
+			// filters: [
+			// 	new Filter("Luminosité", "changeLuminosity", [new Arg("delta", -255, 255)]),
+			// 	new Filter("Egalisation d'histogramme", "histogram", []),
+			// 	new Filter("Filtre de couleur", "colorFilter", [new Arg("hue", 0, 359)]),
+			// 	new Filter("Filter moyenneur", "meanFilter", [new Arg("size", 1, 100, 2)]),
+			// 	new Filter("Filtre gaussien", "gaussianFilter", [new Arg("size", 1, 100, 2)]),
+			// 	new Filter("Filtre de contours", "contours", []),
+			// ],
 			error: false,
 		}
+	},
+	created() {
+		api.getAlgorithmList().then((filters) => {
+			this.filters = filters;
+		});
 	},
 	methods: {
 		applyFilter() {
@@ -32,8 +39,8 @@ export default defineComponent({
 				this.$emit("applyFilter", undefined);
 				return;
 			}
-			const filter = this.filters[this.filterSelectId - 1].clone();
-			for (const arg of filter.args) {
+			const filter = clone(this.filters[this.filterSelectId - 1]);
+			for (const arg of filter.parameters) {
 				if (arg.value === undefined) {
 					this.error = true;
 					return;
@@ -61,13 +68,14 @@ export default defineComponent({
 				</div>
 			</div>
 		</div>
-		<div v-if="filterSelectId !== 0" v-for="argument in filters[filterSelectId - 1].args" class="rangeInput">
-			<label>{{ argument.name }}: ({{ argument.value }}) </label>
-			<input type="range" :min="argument.min" :max="argument.max" :step="argument.step"
-				v-model.number="argument.value" />
+		<div v-if="filters.length != 0 && filterSelectId !== 0" v-for="parameter in filters[filterSelectId - 1].parameters"
+			class="rangeInput">
+			<label>{{ parameter.name }}: ({{ parameter.value }}) </label>
+			<input type="range" :min="parameter.min" :max="parameter.max" :step="parameter.step"
+				v-model.number="parameter.value" />
 		</div>
 		<button @mouseleave="error = false" class="button" :class="{ erreurClass: error }" @click="applyFilter()">
-			{{ error ? "Erreur" : "Appliquer le filter" }}</button>
+			{{ error ? "Erreur" : "Appliquer le filtre" }}</button>
 	</div>
 </template>
 
