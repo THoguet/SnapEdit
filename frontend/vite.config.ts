@@ -14,6 +14,9 @@ export default defineConfig({
 		proxy: {
 			'^/images': {
 				target: 'http://localhost:8080' // Spring boot backend address
+			},
+			'^/algorithms': {
+				target: 'http://localhost:8080'
 			}
 		}
 	},
