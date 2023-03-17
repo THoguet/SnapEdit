@@ -2,7 +2,12 @@ package pdl.backend;
 
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
-import boofcv.alg.color.ColorHsv;
+
+import java.awt.image.BufferedImage;
+
+import boofcv.concurrency.BoofConcurrency;
+import boofcv.io.image.ConvertBufferedImage;
+import boofcv.io.image.UtilImageIO;
 
 public class ImageProcessing {
 
@@ -45,13 +50,13 @@ public class ImageProcessing {
 	 * @param output l'image de sortie en niveaux de gris
 	 */
 	public static void convertColorToGray(Planar<GrayU8> input, Planar<GrayU8> output) {
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
 				int gray = (int) (0.3 * rgb[0] + 0.59 * rgb[1] + 0.11 * rgb[2]);
 				setRGBValue(output, x, y, new int[] { gray, gray, gray });
 			}
-		}
+		});
 	}
 
 	/**
@@ -63,7 +68,7 @@ public class ImageProcessing {
 	 * @param delta La valeur du décalage à appliquer à la luminosité de l'image.
 	 */
 	public static void changeLuminosity(Planar<GrayU8> input, int delta) {
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
 				for (int i = 0; i < rgb.length; i++) {
@@ -77,7 +82,7 @@ public class ImageProcessing {
 				}
 				setRGBValue(input, x, y, rgb);
 			}
-		}
+		});
 	}
 
 	/**
@@ -92,12 +97,12 @@ public class ImageProcessing {
 		convertColorToGray(input, grayInput);
 		// On remplit le tableau avec le nombre de pixels pour chaque niveau de
 		// gris
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int gl = grayInput.getBand(0).get(x, y);
 				h[gl]++;
 			}
-		}
+		});
 
 		// On remplit le tableau avec la cumulée de l'histogramme
 		int C[] = new int[256];
@@ -114,14 +119,14 @@ public class ImageProcessing {
 		}
 
 		// Transformation de l'image en utilisant la table de LUT
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				for (int j = 0; j < input.getNumBands(); j++) {
 					int val = input.getBand(j).get(x, y);
 					input.getBand(j).set(x, y, LUT[val]);
 				}
 			}
-		}
+		});
 	}
 
 	/**
@@ -217,7 +222,7 @@ public class ImageProcessing {
 		if (hue < 0 || hue > 360) {
 			throw new IllegalArgumentException("Hue doit être compris entre 0 et 360");
 		}
-		for (int j = 0; j < input.height; j++) {
+		BoofConcurrency.loopFor(0, input.height, j -> {
 			for (int i = 0; i < input.width; i++) {
 				float[] hsv = new float[3];
 				int[] pixelValue = getRGBValue(input, i, j);
@@ -227,7 +232,7 @@ public class ImageProcessing {
 				hsvToRgb(hsv[0], hsv[1], hsv[2], rgb);
 				setRGBValue(input, i, j, rgb);
 			}
-		}
+		});
 	}
 
 	/**
@@ -244,7 +249,7 @@ public class ImageProcessing {
 		int half = h1.length / 2;
 		Planar<GrayU8> inputGray = input.createSameShape();
 		convertColorToGray(input, inputGray);
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				if (y < half || x < half || y >= input.height - half || x >= input.width - half) {
 					int gl = inputGray.getBand(0).get(x, y);
@@ -273,7 +278,7 @@ public class ImageProcessing {
 				int[] rgb = { value, value, value };
 				setRGBValue(output, x, y, rgb);
 			}
-		}
+		});
 	}
 
 	/**
@@ -290,7 +295,7 @@ public class ImageProcessing {
 			throw new IllegalArgumentException("La taille doit être impaire");
 		}
 		// Boucle pour parcourir tous les pixels de l'image d'entrée
-		for (int y = 0; y < input.height; y++) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				if (y < size / 2 || x < size / 2 || y >= input.height - size / 2
 						|| x >= input.width - size / 2) {
@@ -314,7 +319,7 @@ public class ImageProcessing {
 				}
 				setRGBValue(output, x, y, totalValue);
 			}
-		}
+		});
 
 	}
 
@@ -398,5 +403,29 @@ public class ImageProcessing {
 				setRGBValue(output, x, y, totalValue);
 			}
 		}
+	}
+
+	public static void main(final String[] args) {
+		// load image
+		// if (args.length < 2) {
+		// System.out.println("missing input or output image filename");
+		// System.exit(-1);
+		// }
+		final String inputPath = "backend/src/main/resources/images/mountains.jpg";
+		BufferedImage image = UtilImageIO.loadImage(inputPath);
+		Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(image, null, true, GrayU8.class);
+		Planar<GrayU8> output = input.createSameShape();
+		long beginning = System.nanoTime();
+		meanFilter(input, output, 15);
+		long end = System.nanoTime();
+		System.out.println("Duration : " + ((end - beginning) / 1000000) + "ms");
+
+		long beginning2 = System.nanoTime();
+		long end2 = System.nanoTime();
+		System.out.println("Duration : " + ((end2 - beginning2) / 1000000) + "ms");
+		// save output image
+		final String outputPath = "backend/src/main/resources/images/mountains.jpg";
+		UtilImageIO.saveImage(input, outputPath);
+		System.out.println("Image saved in: " + outputPath);
 	}
 }
