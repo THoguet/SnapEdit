@@ -17,14 +17,6 @@ export default defineComponent({
 			filterSelectId: 0,
 			open: false,
 			filters: [] as Filter[],
-			// filters: [
-			// 	new Filter("Luminosité", "changeLuminosity", [new Arg("delta", -255, 255)]),
-			// 	new Filter("Egalisation d'histogramme", "histogram", []),
-			// 	new Filter("Filtre de couleur", "colorFilter", [new Arg("hue", 0, 359)]),
-			// 	new Filter("Filter moyenneur", "meanFilter", [new Arg("size", 1, 100, 2)]),
-			// 	new Filter("Filtre gaussien", "gaussianFilter", [new Arg("size", 1, 100, 2)]),
-			// 	new Filter("Filtre de contours", "contours", []),
-			// ],
 			error: false,
 		}
 	},
