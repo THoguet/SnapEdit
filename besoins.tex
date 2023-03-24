@@ -1,0 +1,223 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[frenchb]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} 
+\usepackage{lmodern}
+\usepackage{mathptmx}
+
+\usepackage{amsmath}
+\usepackage{etoolbox}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Besoin PDL},
+    pdfpagemode=FullScreen,
+    }
+\usepackage{graphicx}
+%\usepackage[disable]{todonotes}
+\usepackage{todonotes}
+\usepackage{titlesec}
+\titleformat*{\section}{\Large\bfseries\sffamily}
+\titleformat*{\subsection}{\large\bfseries\sffamily}
+\titleformat*{\subsubsection}{\itshape\subsubsectionfont}
+
+\geometry{margin=2cm}
+
+\newcounter{besoin}
+
+% Descriptif des besoins:
+% 1 - Label du besoin pour référencement 
+% 2 - Titre du besoin
+% 3 - Description
+% 4 - Gestion d'erreurs
+% 5 - Spécifications tests
+\newcommand{\besoin}[5]{%
+  \refstepcounter{besoin}%
+  \fbox{\parbox{0.95\linewidth}{%
+    \begin{center}\label{besoin:#1}\textbf{\sffamily Besoin~\thebesoin~: #2}\end{center}
+    \ifstrempty{#3}{}{\textbf{Description~:} #3\par}
+    \vspace{0.5em}
+    \ifstrempty{#4}{}{\textbf{Gestion d'erreurs~:} #4\par}
+    \vspace{0.5em}
+    \ifstrempty{#5}{}{\textbf{Tests~:} #5\par}
+  }}
+}
+
+\newcommand{\refBesoin}[1]{%
+  Besoin~\ref{besoin:#1}%
+}
+
+\title{\sffamily \textbf{Projet de Développement Logiciel}}
+\author{L3 Informatique -- Université de Bordeaux}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Ce document présente les extensions pour le projet PDL
+
+\section{Extensions}
+
+\subsection{BackEnd}
+
+\besoin{backend: listAlgo}
+{Transférer la liste des algorithmes implementés}
+{
+  La liste des algorithmes disponible sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/algorithms!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Name:] Le nom d'affichage de l'algorithme (type \verb!string!)
+  \item[Path:] Le point d'acces de l'algorithme (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+\besoin{backend:selectBorder}
+{Choisir les type de bordure pour les filtres}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+
+\besoin{backend:cropimages}
+{Rogner des images}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+
+\besoin{backend:applyfilteroncroppedimage}
+{Appliquer un filtre sur la selection de l'image}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+ 
+\besoin{backend:removeElementFromImage}
+{Supprimer un element d'une image}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+\subsection{FrontEnd}
+
+
+\besoin{FrontEnd:ShowAlgo}
+{Afficher les algorithmes fournis par le serveur}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+
+\besoin{FrontEnd:generateAnImage}
+{Generer une image avec DALL-E}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+
+\besoin{FrontEnd:seeStatus}
+{Voir l'avancement du traitement de l'image / d'un upload}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+\end{document}
