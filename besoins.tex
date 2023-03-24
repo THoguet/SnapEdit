@@ -77,10 +77,12 @@ Ce document présente les extensions pour le projet PDL
   contenant pour chaque image un objet avec les informations suivantes :
   \begin{description}
   \item[Name:] Le nom d'affichage de l'algorithme (type \verb!string!)
-  \item[Path:] Le point d'acces de l'algorithme (type \verb!string!)
-  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
-  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
-    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \item[Path:] Le point d'acces de l'algorithme \verb!/images?algorithm=<path>! (type \verb!string!)
+  \item[Parameters] Une liste de Parameters (type \verb!List<Parameters>!) ci dessous spécification Parameters
+  \begin{parameters}
+    \item[Name] 
+  \end{parameters}
+  \item[Size:] Une description de la taille de l'image, par exemple 
   \end{description}
 }
 {}
@@ -142,6 +144,37 @@ Ce document présente les extensions pour le projet PDL
 {}
 {}
 
+\besoin{backend:selectionColor}
+{Appliquer un filtre de selection de couleur}
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item[Id:] L'identifiant auquel est accessible l'image (type \verb!long!)
+  \item[Name:] Le nom du fichier qui a servi à construire l'image (type \verb!string!)
+  \item[Type:] Le type de l'image (type \verb!org.springframework.http.MediaType!) 
+  \item[Size:] Une description de la taille de l'image, par exemple \verb!640*480*3! pour
+    une image en couleur de $640 \times 480$ pixels (type \verb!string!)
+  \end{description}
+}
+{}
+{}
+
+\besoin{backend:basicFilters}
+{Ajout de filtres basiques }
+{
+  La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
+
+  Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
+  contenant pour chaque image un objet avec les informations suivantes :
+  \begin{description}
+  \item
+  \end{description}
+}
+{}
+{}
  
 \besoin{backend:removeElementFromImage}
 {Supprimer un element d'une image}
