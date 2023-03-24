@@ -79,10 +79,12 @@ Ce document présente les extensions pour le projet PDL
   \item[Name:] Le nom d'affichage de l'algorithme (type \verb!string!)
   \item[Path:] Le point d'acces de l'algorithme \verb!/images?algorithm=<path>! (type \verb!string!)
   \item[Parameters] Une liste de Parameters (type \verb!List<Parameters>!) ci dessous spécification Parameters
-  \begin{parameters}
-    \item[Name] 
-  \end{parameters}
-  \item[Size:] Une description de la taille de l'image, par exemple 
+  \begin{description}
+    \item[type:] Le type de l'input ("select", "range") (type \verb!string!)
+    \item[Name:] Le point d'acces du parametre \verb!/images?algorithm=*algo*\&<name>=*?*! (type \verb!string!)
+    \item[displayName:] Le nom d'affichage du paramètre (type \verb!string!)
+    \item[options:] le nom et la valeur associé à l'option de l'input (type \verb!string!)
+  \end{description}
   \end{description}
 }
 {}
@@ -163,7 +165,7 @@ Ce document présente les extensions pour le projet PDL
 {}
 
 \besoin{backend:basicFilters}
-{Ajout de filtres basiques}
+{Ajout de filtres basiques }
 {
   Ajout de quelques filtres basiques dont voici la liste: 
   \begin{description}
