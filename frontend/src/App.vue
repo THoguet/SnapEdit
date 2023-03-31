@@ -55,12 +55,7 @@ export default defineComponent({
 	<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList()" />
 </template>
 <style scoped>
-.navi {
-	/* reduce size of children */
-	display: flex;
-	flex-direction: row-reverse;
-	pointer-events: none;
-}
+@import url("@/navi.css");
 
 header {
 	display: block;
@@ -72,49 +67,11 @@ header {
 	pointer-events: none;
 }
 
-ul>li+li {
-	margin-left: 30px;
-}
-
-ul>li {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
 .router-link-active {
 	background-color: #646cff;
 }
 
 .router-link-active>a {
 	color: rgb(205, 201, 194);
-}
-
-a {
-	padding: 5px 15px;
-	border-radius: 60px;
-	color: rgb(172, 165, 154);
-	text-decoration: none;
-	font-family: "Aeonik", sans-serif;
-}
-
-nav {
-	display: flex;
-	justify-content: center;
-	padding-left: 20px;
-	height: 60px;
-	padding-right: 20px;
-	border-radius: 60px;
-	background-color: rgb(24, 26, 27);
-	margin-right: 20px;
-	pointer-events: auto;
-}
-
-
-ul {
-	display: flex;
-	list-style: none;
-	padding-inline-start: 0;
 }
 </style>
