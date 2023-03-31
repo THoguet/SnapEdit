@@ -13,7 +13,7 @@ interface InputFileEvent extends Event {
 }
 
 export default defineComponent({
-	emits: ['updateImageList', 'delete'],
+	emits: ['updateImageList'],
 	data() {
 		return {
 			file: null as FileList | null,
@@ -27,7 +27,14 @@ export default defineComponent({
 		images: {
 			type: Map<number, ImageType>,
 			required: true
+		},
+		fileDefault: {
+			type: FileList,
+			default: null
 		}
+	},
+	created() {
+		this.file = this.fileDefault;
 	},
 	methods: {
 		async submitImage() {

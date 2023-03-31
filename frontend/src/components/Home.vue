@@ -110,9 +110,8 @@ html {
 .navi h3 {
 	cursor: pointer;
 }
-</style>
-<style>
-.home.imageContainer {
+
+:deep(.imageContainer) {
 	max-width: 60%;
 	width: auto;
 	height: auto;
