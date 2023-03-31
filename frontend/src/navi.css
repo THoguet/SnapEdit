@@ -1,0 +1,43 @@
+.navi {
+	/* reduce size of children */
+	display: flex;
+	flex-direction: row-reverse;
+	pointer-events: none;
+	gap: 3vw;
+}
+
+.navi ul>li {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.navi h3,
+.navi a {
+	min-width: 90px;
+	padding: 5px 15px;
+	border-radius: 60px;
+	color: rgb(172, 165, 154);
+	text-decoration: none;
+	font-family: "Aeonik", sans-serif;
+}
+
+.navi nav {
+	display: flex;
+	justify-content: center;
+	padding-left: 20px;
+	height: 60px;
+	padding-right: 20px;
+	border-radius: 60px;
+	background-color: rgb(24, 26, 27);
+	margin-right: 20px;
+	pointer-events: auto;
+}
+
+
+.navi ul {
+	display: flex;
+	list-style: none;
+	padding-inline-start: 0;
+}
