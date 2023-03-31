@@ -3,6 +3,7 @@ import Home from './components/Home.vue'
 import Gallery from './components/Gallery.vue';
 import NotFound from './components/NotFound.vue'
 import Upload from './components/Upload.vue'
+import StableDiff from './components/StableDiff.vue';
 import { defineComponent } from 'vue'
 import { api } from '@/http-api'
 import { ImageType, ImageClass } from './image';
@@ -48,6 +49,7 @@ export default defineComponent({
 					<li><router-link :to="{ name: 'home' }">Home</router-link></li>
 					<li><router-link :to="{ name: 'gallery' }">Gallery</router-link></li>
 					<li><router-link :to="{ name: 'upload' }">Upload</router-link></li>
+					<li><router-link :to="{ name: 'generate' }">Generate Images</router-link></li>
 				</ul>
 			</nav>
 		</div>
