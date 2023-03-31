@@ -17,7 +17,7 @@ export default defineComponent({
 			filterSelectId: 0,
 			open: false,
 			filters: [] as Filter[],
-			error: false,
+			error: "",
 		}
 	},
 	created() {
@@ -27,6 +27,8 @@ export default defineComponent({
 	},
 	methods: {
 		applyFilter() {
+			if (this.error !== "")
+				return;
 			if (this.filterSelectId === 0) {
 				this.$emit("applyFilter", undefined);
 				return;
@@ -34,11 +36,37 @@ export default defineComponent({
 			const filter = clone(this.filters[this.filterSelectId - 1]);
 			for (const arg of filter.parameters) {
 				if (arg.value === undefined) {
-					this.error = true;
+					this.error = "";
 					return;
 				}
 			}
 			this.$emit("applyFilter", filter);
+		},
+		areInputValid() {
+			if (this.filterSelectId === 0)
+				return "";
+			for (const p of this.filters[this.filterSelectId - 1].parameters) {
+				const input = document.getElementById(p.name) as HTMLInputElement;
+				if (input === null)
+					return "";
+				if (!input.checkValidity())
+					return "Paramètre(s) du filtre invalide(s)";
+			}
+			return "";
+		}
+	},
+	watch: {
+		filters: {
+			handler() {
+				for (const f of this.filters) {
+					for (const p of f.parameters) {
+						if (p.value === undefined)
+							p.value = Math.round((p.max - Math.abs(p.min)) / 2);
+					}
+				}
+				this.error = this.areInputValid();
+			},
+			deep: true
 		}
 	}
 })
@@ -62,12 +90,17 @@ export default defineComponent({
 		</div>
 		<div v-if="filters.length != 0 && filterSelectId !== 0" v-for="parameter in filters[filterSelectId - 1].parameters"
 			class="rangeInput">
-			<label>{{ parameter.name }}: ({{ parameter.value }}) </label>
+			<div class="labelInput">
+				<label>{{ parameter.name }}</label>
+				<input type="number" :min="parameter.min" :max="parameter.max" :step="parameter.step"
+					v-model.number="parameter.value" :id="parameter.name" />
+			</div>
 			<input type="range" :min="parameter.min" :max="parameter.max" :step="parameter.step"
 				v-model.number="parameter.value" />
 		</div>
-		<button @mouseleave="error = false" class="button" :class="{ erreurClass: error }" @click="applyFilter()">
-			{{ error ? "Erreur" : "Appliquer le filtre" }}</button>
+		<button @mouseenter="error = areInputValid()" @mouseleave="error = areInputValid()" class="button"
+			:class="{ errorClass: error !== '' }" @click="applyFilter()">
+			{{ error !== "" ? error : "Appliquer le filtre" }}</button>
 	</div>
 </template>
 
@@ -90,7 +123,7 @@ label {
 	gap: 10px;
 }
 
-.erreurClass {
+.errorClass {
 	background-color: red;
 	color: white;
 }
