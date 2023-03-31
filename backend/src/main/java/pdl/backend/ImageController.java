@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import boofcv.io.image.ConvertBufferedImage;
+import boofcv.struct.border.BorderType;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 
@@ -135,6 +136,23 @@ public class ImageController {
 		return nodes;
 	}
 
+	public BorderType getBorderType(String borderType) {
+		switch (borderType) {
+			case "EXTENDED":
+				return BorderType.EXTENDED;
+			case "REFLECT":
+				return BorderType.REFLECT;
+			case "REFLECT_101":
+				return BorderType.NORMALIZED;
+			case "WRAP":
+				return BorderType.WRAP;
+			case "ZERO":
+				return BorderType.ZERO;
+			default:
+				return null;
+		}
+	}
+
 	/**
 	 * récupère une image et la modifie si un algorithme est renseigné
 	 *
@@ -210,8 +228,9 @@ public class ImageController {
 				}
 				break;
 			case "meanFilter":
-				if (!parameters.containsKey("size") || parameters.size() != 2)
-					return JSONError("Algorithm 'meanFilter' requires one parameter 'size'(positive odd integer)",
+				if (!parameters.containsKey("size") || !parameters.containsKey("borderType") || parameters.size() != 3)
+					return JSONError(
+							"Algorithm 'meanFilter' requires two parameters: 'size'(positive odd integer) and 'borderType'('SKIP', 'EXTENDED', 'WRAP', 'REFLECT', 'ZERO' or 'NORMALIZED')",
 							HttpStatus.BAD_REQUEST);
 				try {
 					int i = Integer.parseInt(parameters.get("size"));
@@ -219,24 +238,40 @@ public class ImageController {
 						return JSONError("Parameter 'size' should be a positive odd integer",
 								HttpStatus.BAD_REQUEST);
 					Planar<GrayU8> clone = input.clone();
-					ImageProcessing.meanFilter(clone, input, i);
+					BorderType borderType = getBorderType(parameters.get("borderType"));
+					if (borderType == null) {
+						return JSONError(
+								"Parameter 'borderType' should be 'SKIP', 'EXTENDED', 'WRAP', 'REFLECT', 'ZERO' or 'NORMALIZED'",
+								HttpStatus.BAD_REQUEST);
+					}
+					ImageProcessing.meanFilter(clone, input, i, borderType);
 				} catch (NumberFormatException e) {
 					return JSONError("Parameter 'size' should be a positive odd integer",
 							HttpStatus.BAD_REQUEST);
 				}
 				break;
 			case "gaussienFilter":
-				if (/* !parameters.containsKey("size") || */ parameters.size() != 1)
-					return JSONError("Algorithm 'gaussienFilter' requires no parameters", HttpStatus.BAD_REQUEST);
+				if (!parameters.containsKey("size") || !parameters.containsKey("sigma")
+						|| !parameters.containsKey("borderType") || parameters.size() != 5)
+					return JSONError(
+							"Algorithm 'gaussienFilter' requires 3 parameters: 'size'(positive odd integer), 'sigma'(positive number) and 'borderType'('SKIP', 'EXTENDED', 'WRAP', 'REFLECT', 'ZERO' or 'NORMALIZED')",
+							HttpStatus.BAD_REQUEST);
 				try {
-					// int i = Integer.parseInt(parameters.get("size"));
-					// if (i % 2 == 0)
-					// return JSONError("Parameter 'size' should be a positive odd integer",
-					// HttpStatus.BAD_REQUEST);
+					int i = Integer.parseInt(parameters.get("size"));
+					if (i % 2 == 0 || i < 0)
+						return JSONError("Parameter 'size' should be a positive odd integer",
+								HttpStatus.BAD_REQUEST);
+					double sigma = Double.parseDouble(parameters.get("sigma"));
 					Planar<GrayU8> clone = input.clone();
-					ImageProcessing.gaussienFilter(clone, input, 5);
+					BorderType borderType = getBorderType(parameters.get("borderType"));
+					if (borderType == null) {
+						return JSONError(
+								"Parameter 'borderType' should be 'SKIP', 'EXTENDED', 'WRAP', 'REFLECT', 'ZERO' or 'NORMALIZED'",
+								HttpStatus.BAD_REQUEST);
+					}
+					ImageProcessing.gaussienFilter(clone, input, i, sigma, borderType);
 				} catch (NumberFormatException e) {
-					return JSONError("Parameter 'size' should be a positive odd integer",
+					return JSONError("Parameters 'size' and 'sigma' should be a positive numbers",
 							HttpStatus.BAD_REQUEST);
 				}
 				break;

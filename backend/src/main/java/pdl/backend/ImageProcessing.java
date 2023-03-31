@@ -1,5 +1,6 @@
 package pdl.backend;
 
+import boofcv.struct.border.BorderType;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 
@@ -279,74 +280,77 @@ public class ImageProcessing {
 
 	/**
 	 * Applique un filtre moyenneur de taille indiquée à l'image
-	 * passée en paramètre (le bord de l'image n'est pas modifié)
+	 * passée en paramètre et stocke le résultat dans l'image de sortie.
 	 * 
-	 * @param input  image d'entrée
-	 * @param output image de sortie
-	 * @param size   taille du filtre à appliquer (doit être impaire)
+	 * @param input      image d'entrée
+	 * @param output     image de sortie
+	 * @param size       taille du filtre à appliquer (doit être impaire)
+	 * @param borderType type de bord à utiliser pour la convolution
 	 */
-	public static void meanFilter(Planar<GrayU8> input, Planar<GrayU8> output, int size) {
+	public static void meanFilter(Planar<GrayU8> input, Planar<GrayU8> output, int size, BorderType borderType) {
 		// Vérification que la taille est impaire
-		if (size % 2 == 0) {
-			throw new IllegalArgumentException("La taille doit être impaire");
+		if (size % 2 == 0 || size < 0) {
+			throw new IllegalArgumentException(
+					"La taille doit être impaire et positive");
 		}
-		// Boucle pour parcourir tous les pixels de l'image d'entrée
-		BoofConcurrency.loopFor(0, input.height, y -> {
-			for (int x = 0; x < input.width; x++) {
-				if (y < size / 2 || x < size / 2 || y >= input.height - size / 2
-						|| x >= input.width - size / 2) {
-					setRGBValue(output, x, y, getRGBValue(input, x, y));
-					continue;
-				}
-				int totalValue[] = new int[3];
-				// Boucle pour parcourir le carré size x size autour du pixel actuel
-				for (int j = y - size / 2; j < y + size / 2 + 1; j++) {
-					for (int i = x - size / 2; i < x + size / 2 + 1; i++) {
-						for (int k = 0; k < totalValue.length; k++) {
-							totalValue[k] += input.getBand(k).get(i, j);
-						}
-					}
-				}
-				// Calcule la moyenne des pixels du carré et l'applique au pixel actuel dans
-				// l'image de
-				// sortie
-				for (int k = 0; k < totalValue.length; k++) {
-					totalValue[k] /= size * size;
-				}
-				setRGBValue(output, x, y, totalValue);
+		int[][] kernel = new int[size][size];
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				kernel[i][j] = 1;
 			}
-		});
-
+		}
+		convolution(input, output, kernel, borderType);
 	}
 
 	/**
-	 * TODO
-	 * Calcule le noyau gaussien de taille demandée
 	 * 
-	 * @param size taille du noyau gaussien
-	 * @return noyau gaussien
+	 * Applique un filtre gaussien de taille et de valeur données sur une image et
+	 * stocke le résultat dans l'image de sortie.
+	 * 
+	 * @param input      L'image d'entrée
+	 * @param output     L'image de sortie
+	 * @param size       La taille du filtre à appliquer (doit être impaire)
+	 * @param sigma      La valeur du sigma à utiliser pour le filtre gaussien.
+	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
-	public static int[][] createGaussienKernel(int size) {
-		// Vérification que la taille est impaire
-		if (size % 2 == 0 || size < 0) {
-			throw new IllegalArgumentException("La taille doit être impaire et positive");
+	public static void gaussienFilter(Planar<GrayU8> input, Planar<GrayU8> output,
+			int size, double sigma, BorderType borderType) {
+		if (size % 2 == 0 || size < 0 || sigma <= 0) {
+			throw new IllegalArgumentException(
+					"La taille doit être impaire et positive et sigma doit être strictement positif");
 		}
 		double[][] kernel = new double[size][size];
-		double sigma = 4 / 3;
-		double sum = 0.0; // For accumulating the kernel values
-		for (int x = 0; x < size; ++x)
-			for (int y = 0; y < size; ++y) {
-				kernel[x][y] = 1 / (2 * Math.PI * sigma * sigma) * Math.exp(-(x * x + y * y) / (2 * sigma * sigma));
-
+		int half = size / 2;
+		double sum = 0;
+		for (int x = -half; x <= half; ++x) {
+			for (int y = -half; y <= half; ++y) {
+				double gaussianValue = 1 / (2 * Math.PI * sigma * sigma)
+						* Math.exp(-(x * x + y * y) / (2 * sigma * sigma));
+				kernel[x + half][y + half] = gaussianValue;
+				sum += gaussianValue;
 			}
+		}
+		// On récupère le pourcentage de chaque valeur par rapport à la somme
+		for (int x = -half; x <= half; ++x) {
+			for (int y = -half; y <= half; ++y) {
+				kernel[x + half][y + half] = kernel[x + half][y + half] / sum;
+			}
+		}
 
-		// Normalize the kernel
-		int[][] kernelk = new int[size][size];
-		for (int x = 0; x < size; ++x)
-			for (int y = 0; y < size; ++y)
-				kernelk[x][y] = (int) (kernel[x][y] / sum);
-
-		return kernelk;
+		int[][] kernelInt = new int[size][size];
+		double factor = 1 / kernel[0][0];
+		// Si le facteur est trop grand (la valeur du coin est très très petite par
+		// rapport au reste), on le fixe à 1 million
+		if (factor > 1000000) {
+			factor = 1000000;
+		}
+		// normalisation
+		for (int x = 0; x < size; ++x) {
+			for (int y = 0; y < size; ++y) {
+				kernelInt[x][y] = (int) (kernel[x][y] * factor);
+			}
+		}
+		convolution(input, output, kernelInt, borderType);
 	}
 
 	/**
@@ -354,15 +358,15 @@ public class ImageProcessing {
 	 * Effectue une convolution sur une image avec le noyau
 	 * donné et stocke le résultat dans l'image de sortie.
 	 * 
-	 * @param input  L'image d'entrée
-	 * @param output L'image de sortie
-	 * @param kernel Le noyau de convolution à utiliser.
+	 * @param input      L'image d'entrée
+	 * @param output     L'image de sortie
+	 * @param kernel     Le noyau de convolution à utiliser.
+	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
-	public static void gaussienFilter(Planar<GrayU8> input, Planar<GrayU8> output,
-			int size) {
-		int[][] kernel = { { 1, 2, 3, 2, 1 }, { 2, 6, 8, 6, 2 }, { 3, 8, 10, 8, 3 }, { 2, 6, 8, 6, 2 },
-				{ 1, 2, 3, 2, 1 } };
-		int half = size / 2;
+	public static void convolution(Planar<GrayU8> input, Planar<GrayU8> output,
+			int[][] kernel, BorderType borderType) {
+		int size = kernel.length;
+		int half = kernel.length / 2;
 		int coefs = 0;
 		// Calcul du nombre total de coefficients dans le noyau
 		for (int i = 0; i < kernel.length; i++) {
@@ -374,10 +378,54 @@ public class ImageProcessing {
 		// Parcours de l'image d'entrée et application de la convolution
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
-				// Vérification si le carré sera à l'intérieur de l'image
+				// On traite d'abord les bords
 				if (y < half || x < half || y >= input.height - half || x >= input.width -
 						half) {
-					setRGBValue(output, x, y, getRGBValue(input, x, y));
+					if (borderType == BorderType.SKIP) {
+						setRGBValue(output, x, y, getRGBValue(input, x, y));
+					} else if (borderType == BorderType.ZERO) {
+						setRGBValue(output, x, y, new int[] { 0, 0, 0 });
+					} else {
+						int totalValue[] = new int[3];
+						int coefsUsed = 0;
+						for (int j = y - half; j < y + half + 1; j++) {
+							int tmpj = j;
+							if (j < 0 || j >= input.height) {
+								if (borderType == BorderType.EXTENDED) {
+									tmpj = j < 0 ? 0 : input.height - 1;
+								} else if (borderType == BorderType.NORMALIZED) {
+									continue;
+								} else if (borderType == BorderType.REFLECT) {
+									tmpj = j < 0 ? -j : (input.height - 1) - (j - (input.height - 1));
+								} else if (borderType == BorderType.WRAP) {
+									tmpj = j < 0 ? j + (input.height - 1) : (j - (input.height - 1));
+								}
+							}
+							for (int i = x - size / 2; i < x + size / 2 + 1; i++) {
+								int tmpi = i;
+								if (i < 0 || i >= input.width) {
+									if (borderType == BorderType.EXTENDED) {
+										tmpi = i < 0 ? 0 : input.width - 1;
+									} else if (borderType == BorderType.NORMALIZED) {
+										continue;
+									} else if (borderType == BorderType.REFLECT) {
+										tmpi = i < 0 ? -i : (input.width - 1) - (i - (input.width - 1));
+									} else if (borderType == BorderType.WRAP) {
+										tmpi = i < 0 ? i + (input.width - 1) : (i - (input.width - 1));
+									}
+								}
+								for (int k = 0; k < totalValue.length; k++) {
+									totalValue[k] += input.getBand(k).get(tmpi, tmpj)
+											* kernel[tmpi][tmpj];
+								}
+								coefsUsed += kernel[tmpi][tmpj];
+							}
+						}
+						for (int k = 0; k < totalValue.length; k++) {
+							totalValue[k] /= coefsUsed;
+						}
+						setRGBValue(input, x, y, totalValue);
+					}
 					continue;
 				}
 				int currentJ = 0;
