@@ -6,7 +6,7 @@ public class IntegerParameter extends Parameter {
 	private final int step;
 
 	public IntegerParameter(String name, String displayName, int min, int max, int step) {
-		super(name, displayName);
+		super(name, displayName, "range");
 		this.max = max;
 		this.min = min;
 		this.step = step;

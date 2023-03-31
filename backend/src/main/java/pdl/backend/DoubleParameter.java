@@ -6,7 +6,7 @@ public class DoubleParameter extends Parameter {
 	private final double step;
 
 	public DoubleParameter(String name, String displayName, double min, double max, double step) {
-		super(name, displayName);
+		super(name, displayName, "range");
 		this.max = max;
 		this.min = min;
 		this.step = step;

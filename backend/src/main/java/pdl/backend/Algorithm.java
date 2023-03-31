@@ -28,13 +28,17 @@ public class Algorithm {
 				break;
 			case "meanFilter":
 				Parameter param3 = new IntegerParameter("size", "Taille du filtre", 1, 21, 2);
+				Parameter param6 = new Parameter("borderType", "Type de bordure", "select");
 				this.parameters.add(param3);
+				this.parameters.add(param6);
 				break;
 			case "gaussienFilter":
 				Parameter param4 = new IntegerParameter("size", "Taille du filtre", 1, 21, 2);
 				Parameter param5 = new DoubleParameter("sigma", "", 0.1, 2, 0.1);
+				Parameter param7 = new Parameter("borderType", "Type de bordure", "select");
 				this.parameters.add(param4);
 				this.parameters.add(param5);
+				this.parameters.add(param7);
 				break;
 			case "contours":
 				break;
