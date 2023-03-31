@@ -62,7 +62,7 @@
 
 \section{Introduction}
 
-Ce document présente les extensions pour le projet PDL
+Ce document présente les extensions pour le projet PDL.
 
 \section{Extensions}
 
@@ -71,19 +71,19 @@ Ce document présente les extensions pour le projet PDL
 \besoin{backend: listAlgo}
 {Transférer la liste des algorithmes implementés}
 {
-  La liste des algorithmes disponible sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/algorithms!.
+  La liste des algorithmes disponibles sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/algorithms!.
 
   Le résultat sera fourni au format \verb!JSON!, sous la forme d'un tableau
   contenant pour chaque image un objet avec les informations suivantes :
   \begin{description}
   \item[Name:] Le nom d'affichage de l'algorithme (type \verb!string!)
-  \item[Path:] Le point d'acces de l'algorithme \verb!/images?algorithm=<path>! (type \verb!string!)
-  \item[Parameters] Une liste de Parameters (type \verb!List<Parameters>!) ci dessous spécification Parameters
+  \item[Path:] Le point d'accès de l'algorithme \verb!/images?algorithm=<path>! (type \verb!string!)
+  \item[Parameters] Une liste de paramètres (type \verb!List<Parameters>!) ci dessous spécification Parameters
   \begin{description}
     \item[type:] Le type de l'input ("select", "range") (type \verb!string!)
-    \item[Name:] Le point d'acces du parametre \verb!/images?algorithm=*algo*\&<name>=*?*! (type \verb!string!)
+    \item[Name:] Le point d'accès du paramètre \verb!/images?algorithm=*algo*\&<name>=*?*! (type \verb!string!)
     \item[displayName:] Le nom d'affichage du paramètre (type \verb!string!)
-    \item[options:] le nom et la valeur associé à l'option de l'input (type \verb!string!)
+    \item[options:] Le nom et la valeur associés à l'option de l'input (type \verb!string!)
   \end{description}
   \end{description}
 }
@@ -91,14 +91,16 @@ Ce document présente les extensions pour le projet PDL
 {}
 
 \besoin{backend:selectBorder}
-{Choisir les type de bordure pour les filtres}
+{Choisir les types de bordure pour les filtres}
 {
-  Les différentes façons dont les bords sont gérés par l'algorithme de convolution sont maintenant modifiable au choix parmis : 
+  Les différentes façons dont les bords sont gérés par l'algorithme de convolution sont maintenant modifiable au choix parmi : 
   \begin{description}
-  \item[SKIP:] les bords ne sont pas traités.
-  \item[NORMALIZED:] le masque est normalisé pour ne prendre en compte que les valeurs au sein de l'image.
-  \item[EXTENDED:] les pixels du bord sont étendus hors des limites, par exemple get(-1,0) et get(-2, 0) deviennent get(0,0).
-  \item[REFLECT:] les accès hors de l'image sont réfléchis pour rester dans l'image, par exemple get(0,-2) devient get(0,2)
+  \item[SKIP:] Les bords ne sont pas traités.
+  \item[NORMALIZED:] Le masque est normalisé pour ne prendre en compte que les valeurs au sein de l'image.
+  \item[EXTENDED:] Les pixels du bord sont étendus hors des limites, par exemple get(-1,0) et get(-2, 0) deviennent get(0,0).
+  \item[REFLECT:] Les accès hors de l'image sont réfléchis pour rester dans l'image, par exemple get(0,-2) devient get(0,2).
+  \item[WRAP:] Quand on accède à un pixel hors de l'image, on enveloppe l'image, par exemple get(-1,0) devient get(width-1,0).
+  \item[ZERO:] Tous les pixels de bords sont mis à 0 (noir).
   \end{description}
 }
 {}
@@ -136,9 +138,9 @@ Ce document présente les extensions pour le projet PDL
 {}
 
 \besoin{backend:selectionColor}
-{Appliquer un filtre de selection de couleur}
+{Appliquer un filtre de sélection de couleur}
 {
-  L'algorithme prend une intervalle de couleur, il est possible de choisir si les pixels dont la couleur appartient à l'intervalle la voient changer (noir et blanc ou autre couleur) ou si elle est conservée. L'algorithme prend paramètres : 
+  L'algorithme prend un intervalle de couleurs, il est possible de choisir si les pixels dont la couleur appartient à l'intervalle sont changés (noir et blanc ou autre couleur) ou si ils restent inchangés. L'algorithme prend en paramètres : 
   \begin{description}
   \item[img: ] L'image d'origine
   \item[hMin: ] la valeur de H minimum sur HSV
@@ -154,10 +156,10 @@ Ce document présente les extensions pour le projet PDL
 {
   Ajout de quelques filtres basiques dont voici la liste: 
   \begin{description}
-  \item[sharpness :] Filtre de netteté (sharpness filter) - pour augmenter la netteté des détails dans l'image
-  \item[saturation :] Filtre de saturation (saturation filter) - pour augmenter ou diminuer l'intensité des couleurs dans l'image
-  \item[vignette :] Filtre de vignette (vignette filter) - pour assombrir les bords de l'image et attirer l'attention sur le centre
-  \item[grain :] Filtre de grain (grain filter) - pour ajouter un effet de bruit visuel pour donner à l'image une apparence plus granuleuse
+  \item[sharpness :] Filtre de netteté (sharpness filter) - pour augmenter la netteté des détails dans l'image.
+  \item[saturation :] Filtre de saturation (saturation filter) - pour augmenter ou diminuer l'intensité des couleurs dans l'image.
+  \item[vignette :] Filtre de vignette (vignette filter) - pour assombrir les bords de l'image et attirer l'attention sur le centre.
+  \item[grain :] Filtre de grain (grain filter) - pour ajouter un effet de bruit visuel pour donner à l'image une apparence plus granuleuse.
   \item[sepia :] Filtre de sépia (sepia filter) - pour donner à l'image une teinte brunâtre vintage.
   \item[negative :] Filtre negatif (negative filter) - pour inverser les couleurs d'une image.
   \end{description} 
@@ -166,7 +168,7 @@ Ce document présente les extensions pour le projet PDL
 {}
  
 \besoin{backend:removeElementFromImage}
-{Supprimer un element d'une image}
+{Supprimer un élement d'une image}
 {
   Supprime une zone de l'image et la remplit selon le même principe que la convolution. Cet algorithme prend 6 paramètres : 
   \begin{description}
@@ -208,7 +210,7 @@ Ce document présente les extensions pour le projet PDL
 
 
 \besoin{FrontEnd:generateAnImage}
-{Generer une image avec DALL-E}
+{Générer une image avec DALL-E}
 {
   La liste des images présentes sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/images!.
 
