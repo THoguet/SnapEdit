@@ -73,7 +73,7 @@ export default defineComponent({
 		<HomeEditor v-else @apply-filter="(newFilter) => filter = newFilter"></HomeEditor>
 		<h5 v-if="!editor">Restez sur l'image pour passer en mode éditeur</h5>
 		<h5 v-else>Restez sur l'image pour passer en mode selection</h5>
-		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()" class="home"
+		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()"
 			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images"
 			:filter="filter">
 		</Image>
@@ -107,9 +107,8 @@ html {
 	flex-direction: column;
 	align-items: center;
 }
-</style>
-<style>
-.home.imageContainer {
+
+:deep(.imageContainer) {
 	max-width: 60%;
 	width: auto;
 	height: auto;
@@ -117,7 +116,7 @@ html {
 	margin: 0 0 2vw 0;
 }
 
-div.home.imageContainer:hover {
+:deep(.imageContainer:hover) {
 	animation: zoom-in-zoom-out 2s cubic-bezier(1, 0, 0.51, 1.01);
 	transform: none;
 }
