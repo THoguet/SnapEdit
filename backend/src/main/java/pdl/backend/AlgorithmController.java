@@ -44,9 +44,17 @@ public class AlgorithmController {
 				ObjectNode paramNode = mapper.createObjectNode();
 				paramNode.put("name", p.getName());
 				paramNode.put("displayName", p.getDisplayName());
-				paramNode.put("min", p.getMin());
-				paramNode.put("max", p.getMax());
-				paramNode.put("step", p.getStep());
+				if (p instanceof IntegerParameter) {
+					IntegerParameter copy = (IntegerParameter) p;
+					paramNode.put("min", copy.getMin());
+					paramNode.put("max", copy.getMax());
+					paramNode.put("step", copy.getStep());
+				} else if (p instanceof DoubleParameter) {
+					DoubleParameter copy = (DoubleParameter) p;
+					paramNode.put("min", copy.getMin());
+					paramNode.put("max", copy.getMax());
+					paramNode.put("step", copy.getStep());
+				}
 				parameters.add(paramNode);
 			}
 			nodes.add(objectNode);

@@ -14,25 +14,27 @@ public class Algorithm {
 		this.name = name;
 		this.path = path;
 		this.parameters = new ArrayList<>();
+		String[] borderValues = { "SKIP", "ZERO", "NORMALIZED", "REFLECT", "EXTEND", "WRAP" };
 		switch (path) {
 			case "changeLuminosity":
-				Parameter param1 = new Parameter("delta", "delta", -255, 255, 1);
+				Parameter param1 = new IntegerParameter("delta", "delta", -255, 255, 1);
 				this.parameters.add(param1);
 				break;
 			case "histogram":
 				break;
 			case "colorFilter":
-				Parameter param2 = new Parameter("hue", "Teinte", 0, 359, 1);
+				Parameter param2 = new IntegerParameter("hue", "Teinte", 0, 359, 1);
 				this.parameters.add(param2);
 				break;
 			case "meanFilter":
-				Parameter param3 = new Parameter("size", "Taille du filtre", 1, 101, 2);
+				Parameter param3 = new IntegerParameter("size", "Taille du filtre", 1, 21, 2);
 				this.parameters.add(param3);
 				break;
 			case "gaussienFilter":
-				// TODO
-				// Parameter param4 = new Parameter("size", "Taille du filtre", 1, 101, 2);
-				// this.parameters.add(param4);
+				Parameter param4 = new IntegerParameter("size", "Taille du filtre", 1, 21, 2);
+				Parameter param5 = new DoubleParameter("sigma", "", 0.1, 2, 0.1);
+				this.parameters.add(param4);
+				this.parameters.add(param5);
 				break;
 			case "contours":
 				break;

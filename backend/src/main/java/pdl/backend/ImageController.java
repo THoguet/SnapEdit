@@ -262,6 +262,9 @@ public class ImageController {
 						return JSONError("Parameter 'size' should be a positive odd integer",
 								HttpStatus.BAD_REQUEST);
 					double sigma = Double.parseDouble(parameters.get("sigma"));
+					if (sigma < 0)
+						return JSONError("Parameter 'sigma' should be a positive",
+								HttpStatus.BAD_REQUEST);
 					Planar<GrayU8> clone = input.clone();
 					BorderType borderType = getBorderType(parameters.get("borderType"));
 					if (borderType == null) {
@@ -271,7 +274,7 @@ public class ImageController {
 					}
 					ImageProcessing.gaussienFilter(clone, input, i, sigma, borderType);
 				} catch (NumberFormatException e) {
-					return JSONError("Parameters 'size' and 'sigma' should be a positive numbers",
+					return JSONError("Parameters 'size' and 'sigma' should be numbers",
 							HttpStatus.BAD_REQUEST);
 				}
 				break;
