@@ -37,6 +37,9 @@ export default defineComponent({
 		'images.size': {
 			handler() { this.updateImageSelectedId(); },
 		},
+		imageSelectedId() {
+			this.filter = undefined;
+		}
 	},
 	methods: {
 		updateImageSelectedId(id: number = -1) {
