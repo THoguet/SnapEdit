@@ -1,3 +1,47 @@
+<template>
+	<div class="custom-select" @blur="open = false">
+		<div class="selected" :class="{ open: open }" @click="open = !open">
+			<span>{{ list[selected] }}</span>
+		</div>
+		<div class="items" :class="{ selectHide: !open }">
+			<div v-for="(name, index) in list" @click="open = false; $emit('updateSelected', index)">
+				<span>{{ name }}</span>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script setup lang="ts">
+import { defineComponent } from 'vue'
+</script>
+<script lang="ts">
+
+export default defineComponent({
+	props: {
+		list: {
+			type: Array as () => string[],
+			required: true,
+		},
+		selected: {
+			type: Number,
+			required: true,
+		},
+	},
+	emits: {
+		updateSelected(id: number) {
+			return id >= 0;
+		}
+	},
+	data() {
+		return {
+			open: false,
+		}
+	},
+})
+
+</script>
+
+<style scoped>
 .custom-select {
 	width: 100%;
 	text-align: left;
@@ -69,3 +113,4 @@
 .selectHide {
 	display: none;
 }
+</style>

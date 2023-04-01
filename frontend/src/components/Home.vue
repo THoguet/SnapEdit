@@ -56,10 +56,10 @@ export default defineComponent({
 			<nav>
 				<ul>
 					<li>
-						<h3 :class="{ active: !editor }" @click="editor = false">Mode selection</h3>
+						<h3 :class="{ active: !editor }" @click="editor = false">Mode sélection</h3>
 					</li>
 					<li>
-						<h3 :class="{ active: editor }" @click="editor = true">Mode editeur</h3>
+						<h3 :class="{ active: editor }" @click="editor = true">Mode éditeur</h3>
 					</li>
 				</ul>
 			</nav>
@@ -116,5 +116,6 @@ html {
 	width: auto;
 	height: auto;
 	max-height: 60vh;
+	transform: none;
 }
 </style>
