@@ -42,6 +42,7 @@ public class AlgorithmController {
 					ImageProcessing.colorFilter(input, (int) para.get(0));
 				}));
 
+		// TODO: TESTS
 		algorithms.add(new Algorithm("Filtre Moyenneur", "meanFilter", Arrays.asList(
 				new IntegerParameter("size", "Taille du filtre", 1, 21, 2),
 				new SelectParameter("borderType", "Type de bordure", borderTypes)),
@@ -49,6 +50,7 @@ public class AlgorithmController {
 					ImageProcessing.meanFilter(input, (int) para.get(0), BorderType.valueOf((String) para.get(1)));
 				}));
 
+		// TODO: TESTS
 		algorithms.add(new Algorithm("Filtre Gaussien", "gaussienFilter", Arrays.asList(
 				new IntegerParameter("size", "Taille du filtre", 1, 21, 2),
 				new DoubleParameter("sigma", "Sigma", 0.1, 2, 0.1),

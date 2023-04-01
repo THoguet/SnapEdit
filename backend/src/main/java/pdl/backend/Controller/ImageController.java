@@ -23,7 +23,6 @@ import pdl.backend.Algorithm.Algorithm;
 import pdl.backend.Algorithm.Parameters.Parameter;
 import pdl.backend.Image.Image;
 import pdl.backend.Image.ImageDao;
-import pdl.backend.Image.ImageProcessing;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
