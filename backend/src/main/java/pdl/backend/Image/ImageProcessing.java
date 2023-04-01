@@ -419,9 +419,10 @@ public final class ImageProcessing {
 									}
 								}
 								for (int k = 0; k < totalValue.length; k++) {
-									totalValue[k] += copy.getBand(k).get(tmpi, tmpj) * kernel[tmpi][tmpj];
+									totalValue[k] += copy.getBand(k).get(tmpi, tmpj)
+											* kernel[i + (-x + half)][j + (-y + half)];
 								}
-								coefsUsed += kernel[tmpi][tmpj];
+								coefsUsed += kernel[i + (-x + half)][j + (-y + half)];
 							}
 						}
 						for (int k = 0; k < totalValue.length; k++) {
