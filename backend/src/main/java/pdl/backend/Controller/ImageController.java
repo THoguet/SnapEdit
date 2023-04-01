@@ -1,4 +1,4 @@
-package pdl.backend;
+package pdl.backend.Controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,8 +16,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import boofcv.io.image.ConvertBufferedImage;
+import boofcv.struct.border.BorderType;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
+import pdl.backend.Algorithm.Algorithm;
+import pdl.backend.Algorithm.Parameters.Parameter;
+import pdl.backend.Image.Image;
+import pdl.backend.Image.ImageDao;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -135,6 +140,23 @@ public class ImageController {
 		return nodes;
 	}
 
+	public BorderType getBorderType(String borderType) {
+		switch (borderType) {
+			case "EXTENDED":
+				return BorderType.EXTENDED;
+			case "REFLECT":
+				return BorderType.REFLECT;
+			case "REFLECT_101":
+				return BorderType.NORMALIZED;
+			case "WRAP":
+				return BorderType.WRAP;
+			case "ZERO":
+				return BorderType.ZERO;
+			default:
+				return null;
+		}
+	}
+
 	/**
 	 * récupère une image et la modifie si un algorithme est renseigné
 	 *
@@ -159,6 +181,7 @@ public class ImageController {
 			return ResponseEntity.ok().contentType(image.getMediaType())
 					.body(new InputStreamResource(inputStream));
 		}
+		final List<Algorithm> algos = AlgorithmController.algorithmList();
 		// Vérifie la présence du paramètre "algorithm"
 		if (!parameters.containsKey("algorithm")) {
 			return JSONError("First parameter should be 'algorithm'", HttpStatus.BAD_REQUEST);
@@ -173,82 +196,25 @@ public class ImageController {
 		}
 		Planar<GrayU8> input = ConvertBufferedImage.convertFromPlanar(bufImg, null, true, GrayU8.class);
 
-		// applique l'algo a l'image en fonction des parametres et verifie la validite
-		// des parametres
-		switch (algo) {
-			case "changeLuminosity":
-				if (!parameters.containsKey("delta") || parameters.size() != 2)
-					return JSONError("Algorithm 'changeLuminosity' requires one parameter 'delta'(integer)",
-							HttpStatus.BAD_REQUEST);
-				try {
-					int i = Integer.parseInt(parameters.get("delta"));
-					ImageProcessing.changeLuminosity(input, i);
-				} catch (NumberFormatException e) {
-					return JSONError("Parameter 'delta' should be an integer", HttpStatus.BAD_REQUEST);
-				}
-				break;
-			case "histogram":
-				if (parameters.size() != 1)
-					return JSONError("Algorithm 'histogram' doesn't require any parameters", HttpStatus.BAD_REQUEST);
-				ImageProcessing.histogram(input);
-				break;
-			case "colorFilter":
-				if (!parameters.containsKey("hue") || parameters.size() != 2)
-					return JSONError("Algorithm 'colorFilter' requires one parameter 'hue'(integer)",
-							HttpStatus.BAD_REQUEST);
-				try {
-					int i = Integer.parseInt(parameters.get("hue"));
-					if (i < 0) {
-						return JSONError("Parameter 'hue' should be an integer between 0 and 360",
-								HttpStatus.BAD_REQUEST);
+		for (Algorithm a : algos) {
+			if (a.getPath().equals(algo)) {
+				for (Parameter p : a.getParameters()) {
+					if (!parameters.containsKey(p.getName())) {
+						return JSONError("Parameter '" + p.getName() + "' is missing", HttpStatus.BAD_REQUEST);
 					}
-					ImageProcessing.colorFilter(i, input);
-					// hue entre 0 et 360?
-				} catch (NumberFormatException e) {
-					return JSONError("Parameter 'hue' should be an integer between 0 and 360",
-							HttpStatus.BAD_REQUEST);
+					try {
+						p.setValue(parameters.get(p.getName()));
+					} catch (Exception e) {
+						return JSONError("Parameter '" + p.getName() + "' is invalid", HttpStatus.BAD_REQUEST);
+					}
 				}
-				break;
-			case "meanFilter":
-				if (!parameters.containsKey("size") || parameters.size() != 2)
-					return JSONError("Algorithm 'meanFilter' requires one parameter 'size'(positive odd integer)",
-							HttpStatus.BAD_REQUEST);
 				try {
-					int i = Integer.parseInt(parameters.get("size"));
-					if (i % 2 == 0)
-						return JSONError("Parameter 'size' should be a positive odd integer",
-								HttpStatus.BAD_REQUEST);
-					Planar<GrayU8> clone = input.clone();
-					ImageProcessing.meanFilter(clone, input, i);
-				} catch (NumberFormatException e) {
-					return JSONError("Parameter 'size' should be a positive odd integer",
-							HttpStatus.BAD_REQUEST);
+					a.apply(input);
+				} catch (Exception e) {
+					return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 				break;
-			case "gaussienFilter":
-				if (/* !parameters.containsKey("size") || */ parameters.size() != 1)
-					return JSONError("Algorithm 'gaussienFilter' requires no parameters", HttpStatus.BAD_REQUEST);
-				try {
-					// int i = Integer.parseInt(parameters.get("size"));
-					// if (i % 2 == 0)
-					// return JSONError("Parameter 'size' should be a positive odd integer",
-					// HttpStatus.BAD_REQUEST);
-					Planar<GrayU8> clone = input.clone();
-					ImageProcessing.gaussienFilter(clone, input, 5);
-				} catch (NumberFormatException e) {
-					return JSONError("Parameter 'size' should be a positive odd integer",
-							HttpStatus.BAD_REQUEST);
-				}
-				break;
-			case "contours":
-				if (parameters.size() != 1)
-					return JSONError("Algorithm 'contours' doesn't require any parameters", HttpStatus.BAD_REQUEST);
-				Planar<GrayU8> clone = input.clone();
-				ImageProcessing.gradientImageSobel(clone, input);
-				break;
-			default:
-				return JSONError("Requested algorithm doesn't exist", HttpStatus.BAD_REQUEST);
-
+			}
 		}
 
 		// transforme l'image en quelque chose que le navigateur puisse lire

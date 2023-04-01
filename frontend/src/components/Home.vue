@@ -22,7 +22,6 @@ export default defineComponent({
 	data() {
 		return {
 			imageSelectedId: -1,
-			timer: null as ReturnType<typeof setTimeout> | null,
 			editor: false,
 			filter: undefined as Filter | undefined,
 		}
@@ -38,6 +37,9 @@ export default defineComponent({
 		'images.size': {
 			handler() { this.updateImageSelectedId(); },
 		},
+		imageSelectedId() {
+			this.filter = undefined;
+		}
 	},
 	methods: {
 		updateImageSelectedId(id: number = -1) {
@@ -47,35 +49,29 @@ export default defineComponent({
 				this.imageSelectedId = id;
 			else
 				this.imageSelectedId = this.images.keys().next().value;
-		},
-		startTimer() {
-			if (this.timer !== null)
-				clearTimeout(this.timer);
-			this.timer = setTimeout(() => {
-				this.editor = !this.editor;
-			}, 1900);
-		},
-		clearTimer() {
-			if (this.timer !== null) {
-				clearTimeout(this.timer);
-				this.timer = null;
-			}
 		}
 	}
 })
 </script>
 <template>
 	<div class="flex" v-if="images.size > 0">
-		<h1 v-if="!editor">MODE SÉLECTION</h1>
-		<h1 v-else>MODE ÉDITEUR</h1>
+		<div class="navi">
+			<nav>
+				<ul>
+					<li>
+						<h3 :class="{ active: !editor }" @click="editor = false">Mode sélection</h3>
+					</li>
+					<li>
+						<h3 :class="{ active: editor }" @click="editor = true">Mode éditeur</h3>
+					</li>
+				</ul>
+			</nav>
+		</div>
 		<HomeSelect v-if="!editor" :images="images" :image-selected-id="imageSelectedId" @delete="id => $emit('delete', id)"
 			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
 		<HomeEditor v-else @apply-filter="(newFilter) => filter = newFilter"></HomeEditor>
-		<h5 v-if="!editor">Restez sur l'image pour passer en mode éditeur</h5>
-		<h5 v-else>Restez sur l'image pour passer en mode selection</h5>
-		<Image @mouseleave="clearTimer()" @mouseenter="startTimer()" class="home"
-			v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId" :images="images"
-			:filter="filter">
+		<Image class="home" v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId"
+			:images="images" :filter="filter">
 		</Image>
 		<a class="button" :href="images.get(imageSelectedId)?.data"
 			:download="images.get(imageSelectedId)?.name">Télécharger {{ images.get(imageSelectedId)?.name }}</a>
@@ -83,14 +79,11 @@ export default defineComponent({
 	<h1 v-else>Aucune image trouvée</h1>
 </template>
 <style scoped>
+@import url("@/navi.css");
+
 h1 {
 	color: white;
 	margin: 0;
-}
-
-h5 {
-	color: white;
-	margin: 1vw 0 0 0;
 }
 
 a {
@@ -106,37 +99,24 @@ html {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-}
-</style>
-<style>
-.home.imageContainer {
-	max-width: 60%;
-	width: auto;
-	height: auto;
-	max-height: 60vh;
-	margin: 0 0 2vw 0;
+	gap: 4vh;
 }
 
-div.home.imageContainer:hover {
-	animation: zoom-in-zoom-out 2s cubic-bezier(1, 0, 0.51, 1.01);
+.active {
+	background-color: #646cff;
+}
+
+.active a {
+	color: rgb(205, 201, 194);
+}
+
+.navi h3 {
+	cursor: pointer;
+}
+
+:deep(.imageContainer) {
+	max-width: min(60vh, 60vw);
+	max-height: min(60vh, 60vw);
 	transform: none;
-}
-
-@keyframes zoom-in-zoom-out {
-	0% {
-		transform: scale(1);
-	}
-
-	60% {
-		transform: scale(1.5);
-	}
-
-	75% {
-		transform: scale(10);
-	}
-
-	100% {
-		transform: none;
-	}
 }
 </style>

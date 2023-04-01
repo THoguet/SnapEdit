@@ -1,4 +1,4 @@
-package pdl.backend;
+package pdl.backend.Image;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +13,8 @@ import java.util.Optional;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
+import pdl.backend.Dao;
+
 @Repository
 public class ImageDao implements Dao<Image> {
 
@@ -21,7 +23,7 @@ public class ImageDao implements Dao<Image> {
 	private final Map<Long, Image> images = new HashMap<>();
 
 	public ImageDao() throws IOException {
-		this("images");
+		this("/images");
 	}
 
 	public ImageDao(final String folderPathStr) throws IOException {

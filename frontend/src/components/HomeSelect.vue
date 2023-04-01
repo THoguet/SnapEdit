@@ -2,7 +2,7 @@
 
 import { defineComponent } from 'vue'
 import { ImageType } from '@/image'
-
+import CustomSelector from './CustomSelector.vue';
 </script>
 <script lang="ts">
 
@@ -28,7 +28,6 @@ export default defineComponent({
 	data() {
 		return {
 			sure: false,
-			open: false,
 		}
 	},
 	watch: {
@@ -52,25 +51,14 @@ export default defineComponent({
 <template>
 	<div class="selector">
 		<label>Sélectionner une image: </label>
-		<div class="custom-select" @blur="open = false">
-			<div class="selected" :class="{ open: open }" @click="open = !open">
-				<span>{{ images.get(imageSelectedId)?.name }}</span>
-			</div>
-			<div class="items" :class="{ selectHide: !open }">
-				<div v-for="[id, image] of images" :key="id"
-					@click="$emit('updateImageSelectedId', image.id); open = false;">
-					<span>{{ image.name }}</span>
-				</div>
-			</div>
-		</div>
+		<CustomSelector :list="Array.from(images.values()).map((i) => { return i.name })" :selected="imageSelectedId"
+			@update-selected="$emit('updateImageSelectedId', $event)" />
 		<button class="button" @mouseleave="sure = false" @click="confirmDelete()" :class="{ confirm: sure }">
 			{{ sure ? "Confirmer" : "Supprimer" }}</button>
 	</div>
 </template>
 
 <style scoped>
-@import url(@/customSelect.css);
-
 .selector {
 	display: flex;
 	flex-direction: row;

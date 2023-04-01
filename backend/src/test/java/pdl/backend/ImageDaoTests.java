@@ -7,6 +7,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import pdl.backend.Image.ImageDao;
+
 public class ImageDaoTests {
 
 	@Test

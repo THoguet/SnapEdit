@@ -1,8 +1,9 @@
 <script setup lang="ts">
 
 import { defineComponent } from 'vue'
-import { Filter, clone } from '@/filter'
+import { Filter, clone, FilterType, RangeParameters, SelectParameters } from '@/filter'
 import { api } from "@/http-api";
+import CustomSelector from './CustomSelector.vue';
 
 </script>
 <script lang="ts">
@@ -15,71 +16,118 @@ export default defineComponent({
 	data() {
 		return {
 			filterSelectId: 0,
-			open: false,
 			filters: [] as Filter[],
-			error: false,
-		}
+			error: "",
+			filterApplied: false,
+		};
 	},
 	created() {
 		api.getAlgorithmList().then((filters) => {
 			this.filters = filters;
+			// fill value attribute
+			for (const filter of this.filters) {
+				for (const arg of filter.parameters) {
+					if (arg.type === FilterType.range) {
+						const range = arg as RangeParameters;
+						range.value = range.min;
+					}
+					else if (arg.type === FilterType.select) {
+						const select = arg as SelectParameters;
+						select.value = select.options[0];
+					}
+				}
+			}
+			this.error = this.areInputValid();
 		});
 	},
 	methods: {
 		applyFilter() {
-			if (this.filterSelectId === 0) {
-				this.$emit("applyFilter", undefined);
+			if (this.error !== "")
 				return;
-			}
-			const filter = clone(this.filters[this.filterSelectId - 1]);
+			const filter = clone(this.filters[this.filterSelectId]);
 			for (const arg of filter.parameters) {
 				if (arg.value === undefined) {
-					this.error = true;
+					this.error = "";
 					return;
 				}
 			}
+			this.filterApplied = true;
 			this.$emit("applyFilter", filter);
+		},
+		areInputValid() {
+			for (const p of this.filters[this.filterSelectId].parameters) {
+				const input = document.getElementById(p.name) as HTMLInputElement;
+				if (input === null)
+					return "";
+				if (!input.checkValidity())
+					return "Paramètre(s) du filtre invalide(s)";
+			}
+			return "";
 		}
-	}
+	},
+	watch: {
+		filterSelectId() {
+			this.error = this.areInputValid();
+		},
+		filters: {
+			handler() {
+				this.error = this.areInputValid();
+			},
+			deep: true
+		}
+	},
+	components: { CustomSelector }
 })
 
 </script>
 <template>
 	<div class="editor">
 		<label>Sélectionner un filtre: </label>
-		<div class="custom-select" @blur="open = false">
-			<div class="selected" :class="{ open: open }" @click="open = !open">
-				<span>{{ filterSelectId === 0 ? "Aucun filtre" : filters[filterSelectId - 1].name }}</span>
+		<CustomSelector :list="filters.map((f) => { return f.name })" :selected="filterSelectId"
+			@update-selected="filterSelectId = $event" />
+		<!-- Filter parameters -->
+		<div v-if="filters.length !== 0" v-for="parameter in filters[filterSelectId].parameters" class="rangeInput">
+			<div v-if="parameter.type === FilterType.range">
+				<div class="labelInput">
+					<label>{{ parameter.name }}: </label>
+					<input type="number" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
+						:step="(parameter as RangeParameters).step" v-model.number="parameter.value" :id="parameter.name" />
+				</div>
+				<input type="range" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
+					:step="(parameter as RangeParameters).step" v-model.number="(parameter as RangeParameters).value" />
 			</div>
-			<div class="items" :class="{ selectHide: !open }">
-				<div @click="open = false; filterSelectId = 0">
-					<span>Aucun filtre</span>
-				</div>
-				<div v-for="(filter, index) in filters" @click="open = false; filterSelectId = index + 1">
-					<span>{{ filter.name }}</span>
-				</div>
+			<div v-else-if="parameter.type === FilterType.select" class="selectParam">
+				<label>{{ parameter.name }}: </label>
+				<CustomSelector :list="(parameter as SelectParameters).options"
+					:selected="(parameter as SelectParameters).options.findIndex((o) => o === (parameter as SelectParameters).value)"
+					@update-selected="parameter.value = (parameter as SelectParameters).options[$event]" />
 			</div>
 		</div>
-		<div v-if="filters.length != 0 && filterSelectId !== 0" v-for="parameter in filters[filterSelectId - 1].parameters"
-			class="rangeInput">
-			<label>{{ parameter.name }}: ({{ parameter.value }}) </label>
-			<input type="range" :min="parameter.min" :max="parameter.max" :step="parameter.step"
-				v-model.number="parameter.value" />
-		</div>
-		<button @mouseleave="error = false" class="button" :class="{ erreurClass: error }" @click="applyFilter()">
-			{{ error ? "Erreur" : "Appliquer le filtre" }}</button>
+		<button @mouseenter="error = areInputValid()" @mouseleave="error = areInputValid()" class="button"
+			:class="{ errorClass: error !== '' }" @click="applyFilter()">
+			{{ error !== "" ? error : "Appliquer le filtre" }}</button>
+		<button v-if="filterApplied" class="button"
+			@click="$emit('applyFilter', undefined); filterApplied = false">Supprimer le filtre</button>
 	</div>
 </template>
 
 <style scoped>
-@import url("@/customSelect.css");
-
 label {
 	color: white;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	flex-shrink: 0;
+}
+
+.labelInput {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.labelInput input {
+	width: min-content;
+	height: 1em;
+	font-size: 0.8em;
 }
 
 .editor {
@@ -90,8 +138,19 @@ label {
 	gap: 10px;
 }
 
-.erreurClass {
+.errorClass {
 	background-color: red;
 	color: white;
+}
+
+input:invalid {
+	background-color: red;
+}
+
+.selectParam {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
 }
 </style>

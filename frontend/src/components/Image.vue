@@ -73,9 +73,7 @@ export default defineComponent({
 <style>
 .imageContainer img {
 	max-width: 100%;
-	max-height: 100vh;
-	height: auto;
-	width: auto;
+	max-height: 100%;
 	object-fit: contain;
 }
 
