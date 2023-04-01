@@ -1,4 +1,4 @@
-package pdl.backend;
+package pdl.backend.Image;
 
 import boofcv.struct.border.BorderType;
 import boofcv.struct.image.GrayU8;
@@ -6,7 +6,10 @@ import boofcv.struct.image.Planar;
 
 import boofcv.concurrency.BoofConcurrency;
 
-public class ImageProcessing {
+public final class ImageProcessing {
+
+	private ImageProcessing() {
+	}
 
 	/**
 	 * 
@@ -43,15 +46,14 @@ public class ImageProcessing {
 	 * 
 	 * Convertit une image en couleur en une image en niveaux de gris
 	 * 
-	 * @param input  l'image d'entrée en couleur
-	 * @param output l'image de sortie en niveaux de gris
+	 * @param input l'image d'entrée en couleur
 	 */
-	public static void convertColorToGray(Planar<GrayU8> input, Planar<GrayU8> output) {
+	public static void convertColorToGray(Planar<GrayU8> input) {
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
 				int gray = (int) (0.3 * rgb[0] + 0.59 * rgb[1] + 0.11 * rgb[2]);
-				setRGBValue(output, x, y, new int[] { gray, gray, gray });
+				setRGBValue(input, x, y, new int[] { gray, gray, gray });
 			}
 		});
 	}
@@ -90,8 +92,8 @@ public class ImageProcessing {
 	 */
 	public static void histogram(Planar<GrayU8> input) {
 		int h[] = new int[256];
-		Planar<GrayU8> grayInput = input.createSameShape();
-		convertColorToGray(input, grayInput);
+		Planar<GrayU8> grayInput = input.clone();
+		convertColorToGray(grayInput);
 		// On remplit le tableau avec le nombre de pixels pour chaque niveau de
 		// gris
 		BoofConcurrency.loopFor(0, input.height, y -> {
@@ -215,7 +217,7 @@ public class ImageProcessing {
 	 * @param hue   La valeur de la teinte à appliquer
 	 * @param input L'image à modifier
 	 */
-	public static void colorFilter(int hue, Planar<GrayU8> input) {
+	public static void colorFilter(Planar<GrayU8> input, int hue) {
 		if (hue < 0 || hue > 360) {
 			throw new IllegalArgumentException("Hue doit être compris entre 0 et 360");
 		}
@@ -237,15 +239,15 @@ public class ImageProcessing {
 	 * Calcule et stocke dans output l'image de la norme du gradient
 	 * calculé sur input par convolution avec les filtres de Sobel.
 	 * 
-	 * @param input  L'image d'entrée en niveaux de gris.
-	 * @param output L'image de sortie en niveaux de gris.
+	 * @param input L'image d'entrée en niveaux de gris.
 	 */
-	public static void gradientImageSobel(Planar<GrayU8> input, Planar<GrayU8> output) {
+	public static void gradientImageSobel(Planar<GrayU8> input) {
+		Planar<GrayU8> output = input.createSameShape();
 		int h1[][] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 		int h2[][] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
 		int half = h1.length / 2;
-		Planar<GrayU8> inputGray = input.createSameShape();
-		convertColorToGray(input, inputGray);
+		Planar<GrayU8> inputGray = input.clone();
+		convertColorToGray(inputGray);
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				if (y < half || x < half || y >= input.height - half || x >= input.width - half) {
@@ -276,6 +278,12 @@ public class ImageProcessing {
 				setRGBValue(output, x, y, rgb);
 			}
 		});
+		for (int i = 0; i < input.width; i++) {
+			for (int j = 0; j < input.height; j++) {
+				int[] rgb = getRGBValue(output, i, j);
+				setRGBValue(input, i, j, rgb);
+			}
+		}
 	}
 
 	/**
@@ -283,11 +291,11 @@ public class ImageProcessing {
 	 * passée en paramètre et stocke le résultat dans l'image de sortie.
 	 * 
 	 * @param input      image d'entrée
-	 * @param output     image de sortie
 	 * @param size       taille du filtre à appliquer (doit être impaire)
 	 * @param borderType type de bord à utiliser pour la convolution
 	 */
-	public static void meanFilter(Planar<GrayU8> input, Planar<GrayU8> output, int size, BorderType borderType) {
+	public static void meanFilter(Planar<GrayU8> input, int size, BorderType borderType) {
+		Planar<GrayU8> output = input.createSameShape();
 		// Vérification que la taille est impaire
 		if (size % 2 == 0 || size < 0) {
 			throw new IllegalArgumentException(
@@ -299,7 +307,13 @@ public class ImageProcessing {
 				kernel[i][j] = 1;
 			}
 		}
-		convolution(input, output, kernel, borderType);
+		convolution(input, kernel, borderType);
+		for (int i = 0; i < input.width; i++) {
+			for (int j = 0; j < input.height; j++) {
+				int[] rgb = getRGBValue(output, i, j);
+				setRGBValue(input, i, j, rgb);
+			}
+		}
 	}
 
 	/**
@@ -308,13 +322,12 @@ public class ImageProcessing {
 	 * stocke le résultat dans l'image de sortie.
 	 * 
 	 * @param input      L'image d'entrée
-	 * @param output     L'image de sortie
 	 * @param size       La taille du filtre à appliquer (doit être impaire)
 	 * @param sigma      La valeur du sigma à utiliser pour le filtre gaussien.
 	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
-	public static void gaussienFilter(Planar<GrayU8> input, Planar<GrayU8> output,
-			int size, double sigma, BorderType borderType) {
+	public static void gaussienFilter(Planar<GrayU8> input, int size, double sigma, BorderType borderType) {
+		Planar<GrayU8> output = input.createSameShape();
 		if (size % 2 == 0 || size < 0 || sigma <= 0) {
 			throw new IllegalArgumentException(
 					"La taille doit être impaire et positive et sigma doit être strictement positif");
@@ -350,7 +363,14 @@ public class ImageProcessing {
 				kernelInt[x][y] = (int) (kernel[x][y] * factor);
 			}
 		}
-		convolution(input, output, kernelInt, borderType);
+		convolution(input, kernelInt, borderType);
+		// copy all output pixels to input
+		for (int i = 0; i < input.width; i++) {
+			for (int j = 0; j < input.height; j++) {
+				int[] rgb = getRGBValue(output, i, j);
+				setRGBValue(input, i, j, rgb);
+			}
+		}
 	}
 
 	/**
@@ -359,12 +379,11 @@ public class ImageProcessing {
 	 * donné et stocke le résultat dans l'image de sortie.
 	 * 
 	 * @param input      L'image d'entrée
-	 * @param output     L'image de sortie
 	 * @param kernel     Le noyau de convolution à utiliser.
 	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
-	public static void convolution(Planar<GrayU8> input, Planar<GrayU8> output,
-			int[][] kernel, BorderType borderType) {
+	public static void convolution(Planar<GrayU8> input, int[][] kernel, BorderType borderType) {
+		Planar<GrayU8> output = input.createSameShape();
 		int size = kernel.length;
 		int half = kernel.length / 2;
 		int coefs = 0;
@@ -448,5 +467,11 @@ public class ImageProcessing {
 				setRGBValue(output, x, y, totalValue);
 			}
 		});
+		for (int i = 0; i < input.width; i++) {
+			for (int j = 0; j < input.height; j++) {
+				int[] rgb = getRGBValue(output, i, j);
+				setRGBValue(input, i, j, rgb);
+			}
+		}
 	}
 }

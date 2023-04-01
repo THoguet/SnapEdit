@@ -1,4 +1,7 @@
-package pdl.backend;
+package pdl.backend.Algorithm.Parameters;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class DoubleParameter extends Parameter {
 	private final double min;
@@ -24,4 +27,16 @@ public class DoubleParameter extends Parameter {
 		return this.step;
 	}
 
+	@Override
+	public void setValue(String value) {
+		super.setValueObject(Double.parseDouble(value));
+	}
+
+	public ObjectNode getNode(ObjectMapper mapper) {
+		ObjectNode node = super.getNode(mapper);
+		node.put("min", this.min);
+		node.put("max", this.max);
+		node.put("step", this.step);
+		return node;
+	}
 }
