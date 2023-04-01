@@ -3,6 +3,8 @@ package pdl.backend;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import boofcv.concurrency.BoofConcurrency;
@@ -351,6 +353,45 @@ public class ImageProcessing {
 		return kernelk;
 	}
 
+	public static int[][] createGaussienKernel(int size, double sigma) {
+		// Vérification que la taille est impaire
+		if (size % 2 == 0 || size < 0) {
+			throw new IllegalArgumentException("La taille doit être impaire et positive");
+		}
+		double[][] kernel = new double[size][size];
+		int half = size / 2;
+		double sum = 0;
+		for (int x = -half; x <= half; ++x) {
+			for (int y = -half; y <= half; ++y) {
+				double gaussianValue = 1 / (2 * Math.PI * sigma * sigma)
+						* Math.exp(-(x * x + y * y) / (2 * sigma * sigma));
+				kernel[x + half][y + half] = gaussianValue;
+				sum += gaussianValue;
+			}
+		}
+		// We get the percentage of each value compared to the sum of all values
+		for (int x = -half; x <= half; ++x) {
+			for (int y = -half; y <= half; ++y) {
+				kernel[x + half][y + half] = kernel[x + half][y + half] / sum;
+			}
+		}
+
+		int[][] kernelInt = new int[size][size];
+		double factor = 1 / kernel[0][0];
+		// If the factor is too big (corner value is very very small compared to all
+		// other values), we need to reduce it
+		if (factor > 1000000) {
+			factor = 1000000;
+		}
+		// normalisation
+		for (int x = 0; x < size; ++x) {
+			for (int y = 0; y < size; ++y) {
+				kernelInt[x][y] = (int) (kernel[x][y] * factor);
+			}
+		}
+		return kernelInt;
+	}
+
 	/**
 	 * 
 	 * Effectue une convolution sur une image avec le noyau
@@ -457,53 +498,181 @@ public class ImageProcessing {
 	}
 
 	/**
-	 * TODO
-	 * Effectue une convolution sur une image avec le noyau
-	 * donné et stocke le résultat dans l'image de sortie.
+	 * Donne une valeur de pixel unique en fonction de sa position dans l'image afin
+	 * de créer une map des pixels à traiter
 	 * 
-	 * @param input  L'image d'entrée
-	 * @param output L'image de sortie
-	 * @param kernel Le noyau de convolution à utiliser.
+	 * @param i coordonnée x du pixel
+	 * @param j coordonnée y du pixel
+	 * @return valeur unique du pixel
 	 */
-	public static void removeElement(Planar<GrayU8> input, Planar<GrayU8> output,
+	public static int mapValue(int i, int j) {
+		return j + (i + j) * (i + j + 1) / 2;
+	}
+
+	/**
+	 * Indique si le pixel doit être pris en compte lors de la convolution
+	 * 
+	 * @param input image d'entrée
+	 * @param x     coordonnée x du pixel
+	 * @param y     coordonnée y du pixel
+	 * @param xMin  coordonnée x minimale de la zone
+	 * @param xMax  coordonnée x maximale de la zone
+	 * @param yMin  coordonnée y minimale de la zone
+	 * @param yMax  coordonnée y maximale de la zone
+	 * @param map   map des pixels à traiter
+	 * @return
+	 */
+	public static boolean isInImage(Planar<GrayU8> input, int x, int y, int xMin, int xMax, int yMin, int yMax,
+			Map<Integer, Boolean> map) {
+		if (x < 0 || x >= input.width || y < 0 || y >= input.height) {
+			// outside the image
+			return false;
+		}
+		if (x >= xMin && x <= xMax && y >= yMin && y <= yMax) {
+			// inside the zone
+			if (map.get(mapValue(x, y))) {
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Donne la valeur de convolution d'un pixel
+	 * 
+	 * @param input  l'image d'entrée
+	 * @param x      coordonnée x du pixel
+	 * @param y      coordonnée y du pixel
+	 * @param xMin   coordonnée x minimale de la zone
+	 * @param xMax   coordonnée x maximale de la zone
+	 * @param yMin   coordonnée y minimale de la zone
+	 * @param yMax   coordonnée y maximale de la zone
+	 * @param kernel le noyau de convolution
+	 * @param map    la map des pixels de la zone
+	 * @return la valeur rgb du pixel
+	 */
+	public static int[] getConvolutionValue(Planar<GrayU8> input, int x, int y, int xMin, int xMax, int yMin, int yMax,
+			int[][] kernel, Map<Integer, Boolean> map) {
+		int[] rgb = new int[3];
+		int half = kernel.length / 2;
+		int values[] = new int[3];
+		int coefs = 0;
+		for (int i = x - half; i <= x + half; i++) {
+			for (int j = y - half; j <= y + half; j++) {
+				if (isInImage(input, i, j, xMin, xMax, yMin, yMax, map)) {
+					rgb = getRGBValue(input, i, j);
+					for (int k = 0; k < 3; k++) {
+						values[k] += rgb[k] * kernel[i - x + half][j - y + half];
+					}
+					coefs += kernel[i - x + half][j - y + half];
+
+				}
+			}
+		}
+		for (int k = 0; k < 3; k++) {
+			values[k] /= coefs;
+		}
+		return values;
+	}
+
+	/**
+	 * 
+	 * Retire une zone de l'image en utilisant la méthode donnée en paramètre.
+	 * 
+	 * @param input   L'image d'entrée
+	 * @param output  L'image de sortie
+	 * @param xMin    La coordonnée x minimale de la zone à retirer
+	 * @param xMax    La coordonnée x maximale de la zone à retirer
+	 * @param yMin    La coordonnée y minimale de la zone à retirer
+	 * @param yMax    La coordonnée y maximale de la zone à retirer
+	 * @param filling Le type de remplissage
+	 */
+	public static void removeElement(Planar<GrayU8> input,
 			int xMin, int xMax, int yMin, int yMax, FillingType filling) {
 		if (xMin < 0 || xMax > input.width || yMin < 0 || yMax > input.height) {
 			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
 		}
-		output = input.clone();
-		int nbLayers = (xMax - xMin) / 2;
-		// int[][] kernel = createGaussienKernel(5, 1);
-		for (int l = 0; l < nbLayers; l++) {
-			for (int i = xMin + l; i <= xMin + nbLayers; i++) {
+		if (filling == FillingType.CONVOLUTION) {
+			int[][] kernel = createGaussienKernel(5, 1);
 
+			Map<Integer, Boolean> map = new HashMap<Integer, Boolean>();
+			for (int i = xMin; i <= xMax; i++) {
+				for (int j = yMin; j <= yMax; j++) {
+					map.put(mapValue(i, j), false);
+					setRGBValue(input, i, j, new int[] { 0, 0, 0 });
+				}
+			}
+
+			int xStart = xMin;
+			int yStart = yMin;
+			int xEnd = xMax;
+			int yEnd = yMax;
+
+			while (xStart <= xEnd && yStart <= yEnd) {
+				for (int x = xStart; x <= xEnd; x++) {
+					setRGBValue(input, x, yStart,
+							getConvolutionValue(input, x, yStart, xMin, xMax, yMin, yMax, kernel, map));
+					map.put(mapValue(x, yStart), true);
+				}
+				for (int y = yStart + 1; y <= yEnd; y++) {
+					setRGBValue(input, xEnd, y,
+							getConvolutionValue(input, xEnd, y, xMin, xMax, yMin, yMax, kernel, map));
+					map.put(mapValue(xEnd, y), true);
+				}
+				if (yStart < yEnd) {
+					for (int x = xEnd - 1; x >= xStart; x--) {
+						setRGBValue(input, x, yEnd,
+								getConvolutionValue(input, x, yEnd, xMin, xMax, yMin, yMax, kernel, map));
+						map.put(mapValue(x, yEnd), true);
+					}
+				}
+				if (xStart < xEnd) {
+					for (int y = yEnd - 1; y > yStart; y--) {
+						setRGBValue(input, xStart, y,
+								getConvolutionValue(input, xStart, y, xMin, xMax, yMin, yMax, kernel, map));
+						map.put(mapValue(xStart, y), true);
+					}
+				}
+				xStart++;
+				yStart++;
+				xEnd--;
+				yEnd--;
 			}
 		}
-		for (int i = 0; i < input.width; i++) {
-			for (int j = 0; j < input.height; j++) {
-				if (i >= xMin && i <= xMax && j >= yMin && j <= yMax) {
-					if (filling == FillingType.SKIP) {
-						setRGBValue(output, i, j, new int[] { 0, 0, 0 });
-					} else if (filling == FillingType.CONVOLUTION) {
-						for (int l = 0; l < nbLayers; l++) {
-							int[] rgb = new int[3];
-							for (int k = 0; k < 3; k++) {
-							}
-						}
-					} else if (filling == FillingType.LEFT) {
-						setRGBValue(output, i, j, getRGBValue(input, xMin - (i - xMin), j));
-					} else if (filling == FillingType.RIGHT) {
-						setRGBValue(output, i, j, getRGBValue(input, xMax + (xMax - i), j));
-					} else if (filling == FillingType.TOP) {
-						setRGBValue(output, i, j, getRGBValue(input, i, yMin - j));
-					} else if (filling == FillingType.BOTTOM) {
-						setRGBValue(output, i, j, getRGBValue(input, i, yMax + j));
+		for (int i = xMin; i <= xMax; i++) {
+			for (int j = yMin; j <= yMax; j++) {
+				if (filling == FillingType.SKIP) {
+					setRGBValue(input, i, j, new int[] { 0, 0, 0 });
+				} else if (filling == FillingType.LEFT) {
+					int ind = xMin - (i - xMin);
+					if (ind < 0) {
+						ind = 0;
 					}
+					setRGBValue(input, i, j, getRGBValue(input, ind, j));
+				} else if (filling == FillingType.RIGHT) {
+					int ind = xMax + (xMax - i);
+					if (ind >= input.width) {
+						ind = input.width - 1;
+					}
+					setRGBValue(input, i, j, getRGBValue(input, ind, j));
+				} else if (filling == FillingType.TOP) {
+					int ind = yMin - (i - yMin);
+					if (ind < 0) {
+						ind = 0;
+					}
+					setRGBValue(input, i, j, getRGBValue(input, i, yMin - (j - yMin)));
+				} else if (filling == FillingType.BOTTOM) {
+					int ind = yMax + (yMax - i);
+					if (ind >= input.height) {
+						ind = input.height - 1;
+					}
+					setRGBValue(input, i, j, getRGBValue(input, i, yMax + (yMax - j)));
 				} else {
-					setRGBValue(output, i, j, getRGBValue(input, i, j));
+					setRGBValue(input, i, j, getRGBValue(input, i, j));
 				}
 			}
 		}
-
 	}
 
 	/**
