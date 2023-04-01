@@ -3,6 +3,8 @@ package pdl.backend;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 
+import java.util.Random;
+
 import boofcv.concurrency.BoofConcurrency;
 
 public class ImageProcessing {
@@ -398,6 +400,137 @@ public class ImageProcessing {
 					totalValue[k] /= totalCoefs;
 				}
 				setRGBValue(output, x, y, totalValue);
+			}
+		});
+	}
+
+	/**
+	 * Inverse les couleurs de l'image donnée en paramètre.
+	 * 
+	 * @param input L'image à inverser
+	 */
+	public static void oppositeColors(Planar<GrayU8> input) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
+			for (int x = 0; x < input.width; x++) {
+				for (int j = 0; j < input.getNumBands(); j++) {
+					int gl = input.getBand(j).get(x, y);
+					input.getBand(j).set(x, y, 255 - gl);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Effectue un filtre de type sépia sur l'image donnée en paramètre.
+	 * 
+	 * @param input L'image à modifier
+	 */
+	public static void sepiaFilter(Planar<GrayU8> input) {
+		if (input.getNumBands() == 1) {
+			return;
+		}
+		BoofConcurrency.loopFor(0, input.height, y -> {
+			for (int x = 0; x < input.width; x++) {
+				int[] rgb = getRGBValue(input, x, y);
+				int r = rgb[0];
+				int g = rgb[1];
+				int b = rgb[2];
+				int tr = (int) (0.393 * r + 0.769 * g + 0.189 * b);
+				int tg = (int) (0.349 * r + 0.686 * g + 0.168 * b);
+				int tb = (int) (0.272 * r + 0.534 * g + 0.131 * b);
+				if (tr > 255) {
+					tr = 255;
+				}
+				if (tg > 255) {
+					tg = 255;
+				}
+				if (tb > 255) {
+					tb = 255;
+				}
+				setRGBValue(input, x, y, new int[] { tr, tg, tb });
+			}
+		});
+	}
+
+	public enum FillingType {
+		SKIP, CONVOLUTION, LEFT, RIGHT, TOP, BOTTOM
+	}
+
+	/**
+	 * TODO
+	 * Effectue une convolution sur une image avec le noyau
+	 * donné et stocke le résultat dans l'image de sortie.
+	 * 
+	 * @param input  L'image d'entrée
+	 * @param output L'image de sortie
+	 * @param kernel Le noyau de convolution à utiliser.
+	 */
+	public static void removeElement(Planar<GrayU8> input, Planar<GrayU8> output,
+			int xMin, int xMax, int yMin, int yMax, FillingType filling) {
+		if (xMin < 0 || xMax > input.width || yMin < 0 || yMax > input.height) {
+			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
+		}
+		output = input.clone();
+		int nbLayers = (xMax - xMin) / 2;
+		// int[][] kernel = createGaussienKernel(5, 1);
+		for (int l = 0; l < nbLayers; l++) {
+			for (int i = xMin + l; i <= xMin + nbLayers; i++) {
+
+			}
+		}
+		for (int i = 0; i < input.width; i++) {
+			for (int j = 0; j < input.height; j++) {
+				if (i >= xMin && i <= xMax && j >= yMin && j <= yMax) {
+					if (filling == FillingType.SKIP) {
+						setRGBValue(output, i, j, new int[] { 0, 0, 0 });
+					} else if (filling == FillingType.CONVOLUTION) {
+						for (int l = 0; l < nbLayers; l++) {
+							int[] rgb = new int[3];
+							for (int k = 0; k < 3; k++) {
+							}
+						}
+					} else if (filling == FillingType.LEFT) {
+						setRGBValue(output, i, j, getRGBValue(input, xMin - (i - xMin), j));
+					} else if (filling == FillingType.RIGHT) {
+						setRGBValue(output, i, j, getRGBValue(input, xMax + (xMax - i), j));
+					} else if (filling == FillingType.TOP) {
+						setRGBValue(output, i, j, getRGBValue(input, i, yMin - j));
+					} else if (filling == FillingType.BOTTOM) {
+						setRGBValue(output, i, j, getRGBValue(input, i, yMax + j));
+					}
+				} else {
+					setRGBValue(output, i, j, getRGBValue(input, i, j));
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Effectue un filtre de type bruit gaussien sur l'image donnée en paramètre.
+	 * 
+	 * @param input  L'image à modifier
+	 * @param mean   La moyenne du bruit
+	 * @param stdDev L'écart type du bruit
+	 */
+	public static void gaussianNoiseFilter(Planar<GrayU8> input, double mean, double stdDev) {
+		BoofConcurrency.loopFor(0, input.height, y -> {
+			for (int x = 0; x < input.width; x++) {
+				int rgb[] = getRGBValue(input, x, y);
+				for (int i = 0; i < rgb.length; i++) {
+					Random rand = new Random();
+					// Genere une valeur de bruit aleatoire a partir d'une distribution gaussienne
+					double noise = rand.nextGaussian() * stdDev + mean;
+					rgb[i] = (int) Math.round(rgb[i] + noise);
+					// On vérifie que la valeur est comprise entre 0 et 255
+					rgb[i] = Math.max(0, Math.min(255, rgb[i]));
+					if (input.getNumBands() == 1) {
+						rgb[1] = rgb[0];
+						rgb[2] = rgb[0];
+						break;
+					}
+				}
+				setRGBValue(input, x, y, rgb);
 			}
 		});
 	}
