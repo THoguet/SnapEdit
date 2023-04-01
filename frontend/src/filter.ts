@@ -7,13 +7,12 @@ export enum FilterType {
 export abstract class Parameters {
 	name: string
 	displayName: string
-	value: number
 	type: FilterType
+	value: any
 
-	constructor(name: string, displayName: string, value: any = undefined, type: FilterType) {
+	constructor(name: string, displayName: string, type: FilterType) {
 		this.name = name
 		this.displayName = displayName
-		this.value = value
 		this.type = type
 	}
 
@@ -23,9 +22,10 @@ export class RangeParameters extends Parameters {
 	min: number
 	max: number
 	step: number
-	constructor(name: string, displayName: string, min: number, max: number, step: number) {
-		const value = max / 2;
-		super(name, displayName, value, FilterType.range)
+	value: number
+	constructor(name: string, displayName: string, min: number, max: number, step: number, value: number = min) {
+		super(name, displayName, FilterType.range)
+		this.value = value;
 		this.min = min
 		this.max = max
 		this.step = step
@@ -34,8 +34,10 @@ export class RangeParameters extends Parameters {
 
 export class SelectParameters extends Parameters {
 	options: string[]
-	constructor(name: string, displayName: string, options: string[]) {
-		super(name, displayName, 0, FilterType.select)
+	value: string
+	constructor(name: string, displayName: string, options: string[], value = options[0]) {
+		super(name, displayName, FilterType.select)
+		this.value = value;
 		this.options = options
 	}
 }
@@ -73,10 +75,10 @@ export function clone(f: Filter): Filter {
 		switch (param.type) {
 			case FilterType.range:
 				const paramCastRange = param as RangeParameters
-				return new RangeParameters(param.name, param.displayName, paramCastRange.min, paramCastRange.max, paramCastRange.step)
+				return new RangeParameters(param.name, param.displayName, paramCastRange.min, paramCastRange.max, paramCastRange.step, paramCastRange.value)
 			case FilterType.select:
 				const paramCastSelect = param as SelectParameters
-				return new SelectParameters(param.name, param.displayName, paramCastSelect.options)
+				return new SelectParameters(param.name, param.displayName, paramCastSelect.options, paramCastSelect.value)
 		}
 	}))
 }

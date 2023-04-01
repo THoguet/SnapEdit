@@ -29,11 +29,11 @@ export default defineComponent({
 				for (const arg of filter.parameters) {
 					if (arg.type === FilterType.range) {
 						const range = arg as RangeParameters;
-						range.value = (range.max - Math.abs(range.min)) / 2;
+						range.value = range.min;
 					}
 					else if (arg.type === FilterType.select) {
 						const select = arg as SelectParameters;
-						select.value = 0;
+						select.value = select.options[0];
 					}
 				}
 			}
@@ -94,12 +94,13 @@ export default defineComponent({
 						:step="(parameter as RangeParameters).step" v-model.number="parameter.value" :id="parameter.name" />
 				</div>
 				<input type="range" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
-					:step="(parameter as RangeParameters).step" v-model.number="parameter.value" />
+					:step="(parameter as RangeParameters).step" v-model.number="(parameter as RangeParameters).value" />
 			</div>
 			<div v-else-if="parameter.type === FilterType.select" class="selectParam">
 				<label>{{ parameter.name }}: </label>
-				<CustomSelector :list="(parameter as SelectParameters).options" :selected="parameter.value"
-					@update-selected="parameter.value = $event" />
+				<CustomSelector :list="(parameter as SelectParameters).options"
+					:selected="(parameter as SelectParameters).options.findIndex((o) => o === (parameter as SelectParameters).value)"
+					@update-selected="parameter.value = (parameter as SelectParameters).options[$event]" />
 			</div>
 		</div>
 		<button @mouseenter="error = areInputValid()" @mouseleave="error = areInputValid()" class="button"

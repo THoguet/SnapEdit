@@ -112,10 +112,8 @@ html {
 }
 
 :deep(.imageContainer) {
-	max-width: 60%;
-	width: auto;
-	height: auto;
-	max-height: 60vh;
+	max-width: min(60vh, 60vw);
+	max-height: min(60vh, 60vw);
 	transform: none;
 }
 </style>

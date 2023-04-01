@@ -202,9 +202,17 @@ public class ImageController {
 					if (!parameters.containsKey(p.getName())) {
 						return JSONError("Parameter '" + p.getName() + "' is missing", HttpStatus.BAD_REQUEST);
 					}
-					p.setValue(parameters.get(p.getName()));
+					try {
+						p.setValue(parameters.get(p.getName()));
+					} catch (Exception e) {
+						return JSONError("Parameter '" + p.getName() + "' is invalid", HttpStatus.BAD_REQUEST);
+					}
 				}
-				a.apply(input);
+				try {
+					a.apply(input);
+				} catch (Exception e) {
+					return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+				}
 				break;
 			}
 		}

@@ -295,7 +295,6 @@ public final class ImageProcessing {
 	 * @param borderType type de bord à utiliser pour la convolution
 	 */
 	public static void meanFilter(Planar<GrayU8> input, int size, BorderType borderType) {
-		Planar<GrayU8> output = input.createSameShape();
 		// Vérification que la taille est impaire
 		if (size % 2 == 0 || size < 0) {
 			throw new IllegalArgumentException(
@@ -308,12 +307,6 @@ public final class ImageProcessing {
 			}
 		}
 		convolution(input, kernel, borderType);
-		for (int i = 0; i < input.width; i++) {
-			for (int j = 0; j < input.height; j++) {
-				int[] rgb = getRGBValue(output, i, j);
-				setRGBValue(input, i, j, rgb);
-			}
-		}
 	}
 
 	/**
@@ -327,7 +320,6 @@ public final class ImageProcessing {
 	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
 	public static void gaussienFilter(Planar<GrayU8> input, int size, double sigma, BorderType borderType) {
-		Planar<GrayU8> output = input.createSameShape();
 		if (size % 2 == 0 || size < 0 || sigma <= 0) {
 			throw new IllegalArgumentException(
 					"La taille doit être impaire et positive et sigma doit être strictement positif");
@@ -364,13 +356,6 @@ public final class ImageProcessing {
 			}
 		}
 		convolution(input, kernelInt, borderType);
-		// copy all output pixels to input
-		for (int i = 0; i < input.width; i++) {
-			for (int j = 0; j < input.height; j++) {
-				int[] rgb = getRGBValue(output, i, j);
-				setRGBValue(input, i, j, rgb);
-			}
-		}
 	}
 
 	/**
@@ -383,7 +368,7 @@ public final class ImageProcessing {
 	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
 	public static void convolution(Planar<GrayU8> input, int[][] kernel, BorderType borderType) {
-		Planar<GrayU8> output = input.createSameShape();
+		Planar<GrayU8> copy = input.clone();
 		int size = kernel.length;
 		int half = kernel.length / 2;
 		int coefs = 0;
@@ -401,9 +386,9 @@ public final class ImageProcessing {
 				if (y < half || x < half || y >= input.height - half || x >= input.width -
 						half) {
 					if (borderType == BorderType.SKIP) {
-						setRGBValue(output, x, y, getRGBValue(input, x, y));
+						setRGBValue(input, x, y, getRGBValue(copy, x, y));
 					} else if (borderType == BorderType.ZERO) {
-						setRGBValue(output, x, y, new int[] { 0, 0, 0 });
+						setRGBValue(input, x, y, new int[] { 0, 0, 0 });
 					} else {
 						int totalValue[] = new int[3];
 						int coefsUsed = 0;
@@ -434,8 +419,7 @@ public final class ImageProcessing {
 									}
 								}
 								for (int k = 0; k < totalValue.length; k++) {
-									totalValue[k] += input.getBand(k).get(tmpi, tmpj)
-											* kernel[tmpi][tmpj];
+									totalValue[k] += copy.getBand(k).get(tmpi, tmpj) * kernel[tmpi][tmpj];
 								}
 								coefsUsed += kernel[tmpi][tmpj];
 							}
@@ -454,7 +438,7 @@ public final class ImageProcessing {
 				for (int j = y - half; j <= y + half; j++) {
 					for (int i = x - half; i <= x + half; i++) {
 						for (int k = 0; k < totalValue.length; k++) {
-							totalValue[k] += input.getBand(k).get(i, j) * kernel[currentJ][currentI];
+							totalValue[k] += copy.getBand(k).get(i, j) * kernel[currentJ][currentI];
 						}
 						currentI++;
 					}
@@ -464,14 +448,8 @@ public final class ImageProcessing {
 				for (int k = 0; k < totalValue.length; k++) {
 					totalValue[k] /= totalCoefs;
 				}
-				setRGBValue(output, x, y, totalValue);
+				setRGBValue(input, x, y, totalValue);
 			}
 		});
-		for (int i = 0; i < input.width; i++) {
-			for (int j = 0; j < input.height; j++) {
-				int[] rgb = getRGBValue(output, i, j);
-				setRGBValue(input, i, j, rgb);
-			}
-		}
 	}
 }

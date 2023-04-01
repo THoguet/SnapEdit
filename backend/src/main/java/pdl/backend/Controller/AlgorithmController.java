@@ -29,7 +29,7 @@ public class AlgorithmController {
 	private ObjectMapper mapper;
 
 	public static List<Algorithm> algorithmList() {
-		final String[] borderTypes = { "SKIP", "ZERO", "NORMALIZED", "REFLECT", "EXTEND", "WRAP" };
+		final String[] borderTypes = { "SKIP", "ZERO", "NORMALIZED", "REFLECT", "EXTENDED", "WRAP" };
 		ArrayList<Algorithm> algorithms = new ArrayList<Algorithm>();
 		algorithms.add(new Algorithm("Changement de luminosité", "changeLuminosity",
 				Arrays.asList(new IntegerParameter("delta", "delta", -255, 255, 1)),
