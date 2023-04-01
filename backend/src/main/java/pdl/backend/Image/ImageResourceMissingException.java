@@ -1,4 +1,4 @@
-package pdl.backend;
+package pdl.backend.Image;
 
 import java.io.FileNotFoundException;
 
