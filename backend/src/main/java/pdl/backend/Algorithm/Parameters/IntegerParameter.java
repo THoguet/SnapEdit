@@ -8,8 +8,8 @@ public class IntegerParameter extends Parameter {
 	private final int max;
 	private final int step;
 
-	public IntegerParameter(String name, String displayName, int min, int max, int step) {
-		super(name, displayName, "range");
+	public IntegerParameter(String name, String path, int min, int max, int step) {
+		super(name, path, "range");
 		this.max = max;
 		this.min = min;
 		this.step = step;

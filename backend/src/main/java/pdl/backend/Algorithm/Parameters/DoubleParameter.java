@@ -8,8 +8,8 @@ public class DoubleParameter extends Parameter {
 	private final double max;
 	private final double step;
 
-	public DoubleParameter(String name, String displayName, double min, double max, double step) {
-		super(name, displayName, "range");
+	public DoubleParameter(String name, String path, double min, double max, double step) {
+		super(name, path, "range");
 		this.max = max;
 		this.min = min;
 		this.step = step;

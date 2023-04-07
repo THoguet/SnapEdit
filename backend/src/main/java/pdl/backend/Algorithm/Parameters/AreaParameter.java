@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AreaParameter extends Parameter {
 
-	public AreaParameter(String name, String displayName) {
-		super(name, displayName, "area");
+	public AreaParameter(String name, String path) {
+		super(name, path, "area");
 	}
 
 	@Override
