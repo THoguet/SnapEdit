@@ -100,7 +100,7 @@ public class ImageController {
 				|| (!contentType.equals(MediaType.IMAGE_JPEG_VALUE) && !contentType.equals(MediaType.IMAGE_PNG_VALUE)))
 			return JSONError("Content type " + contentType + "is not supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 		try {
-			Image newImg = new Image(file.getOriginalFilename(), file.getBytes());
+			Image newImg = new Image(file.getOriginalFilename(), file.getBytes(), null);
 			imageDao.create(newImg);
 			URI newURI = ServletUriComponentsBuilder.fromCurrentRequest().path("/" + newImg.getId()).build().toUri();
 			return ResponseEntity.created(newURI).build();
@@ -165,8 +165,7 @@ public class ImageController {
 	 *                   l'algorithme à utiliser ainsi que ses paramètres
 	 * @return Une ResponseEntity
 	 */
-	@GetMapping(value = "/images/{id}", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE,
-			"application/json" })
+	@GetMapping(value = "/images/{id}", produces = { "application/json" })
 	public ResponseEntity<?> getImage(@PathVariable("id") long id,
 			@RequestParam(required = false) Map<String, String> parameters) {
 
@@ -210,6 +209,7 @@ public class ImageController {
 				}
 				try {
 					a.apply(input);
+
 				} catch (Exception e) {
 					return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 				}
@@ -227,8 +227,23 @@ public class ImageController {
 			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		byte[] imageData = baos.toByteArray();
-		InputStream inputStream = new ByteArrayInputStream(
-				imageData);
-		return ResponseEntity.ok().contentType(image.getMediaType()).body(new InputStreamResource(inputStream));
+		String name = image.getName() + "_filtered";
+		Image newImg;
+		try {
+			if (image.isFiltered()) {
+				newImg = new Image(name, imageData, image.getParent());
+				imageDao.delete(image);
+			} else {
+				newImg = new Image(name, imageData, image);
+			}
+		} catch (IOException e) {
+			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		if (image.isFiltered()) {
+			imageDao.delete(image);
+		}
+		newImg.setFiltered(true);
+		imageDao.create(newImg);
+		return ResponseEntity.ok().body(newImg.getId());
 	}
 }

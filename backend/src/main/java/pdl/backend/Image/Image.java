@@ -18,8 +18,10 @@ public class Image {
 	private final int width;
 	private final int height;
 	private final int nbColors;
+	private boolean filtered;
+	private Image parent;
 
-	public Image(final String name, final byte[] data) throws IOException {
+	public Image(final String name, final byte[] data, Image parent) throws IOException {
 		id = count++;
 		this.name = name;
 		this.data = data;
@@ -28,7 +30,8 @@ public class Image {
 		this.width = bufImg.getWidth();
 		this.height = bufImg.getHeight();
 		this.nbColors = bufImg.getColorModel().getNumComponents();
-
+		this.filtered = false;
+		this.parent = parent;
 	}
 
 	public MediaType getMediaType() {
@@ -40,7 +43,10 @@ public class Image {
 	}
 
 	public String getName() {
-		return name;
+		if (filtered)
+			return name + "_filtered";
+		else
+			return name;
 	}
 
 	public void setName(final String name) {
@@ -69,5 +75,17 @@ public class Image {
 
 	public String getSize() {
 		return this.getWidth() + "*" + this.getHeight() + "*" + this.getNbColors();
+	}
+
+	public boolean isFiltered() {
+		return filtered;
+	}
+
+	public void setFiltered(final boolean filtered) {
+		this.filtered = filtered;
+	}
+
+	public Image getParent() {
+		return parent;
 	}
 }

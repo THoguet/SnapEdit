@@ -58,7 +58,7 @@ public class ImageDao implements Dao<Image> {
 				byte[] fileContent;
 				try {
 					fileContent = Files.readAllBytes(file.toPath());
-					Image img = new Image(file.getName(), fileContent);
+					Image img = new Image(file.getName(), fileContent, null);
 					images.put(img.getId(), img);
 				} catch (final IOException e) {
 					e.printStackTrace();
