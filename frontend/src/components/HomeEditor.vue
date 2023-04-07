@@ -9,8 +9,8 @@ import CustomSelector from './CustomSelector.vue';
 <script lang="ts">
 export default defineComponent({
 	emits: {
-		applyFilter(filter: Filter | undefined) {
-			return filter !== null;
+		applyFilter(filter: Filter) {
+			return filter !== null && filter !== undefined;
 		}
 	},
 	data() {
@@ -44,7 +44,7 @@ export default defineComponent({
 		applyFilter() {
 			if (this.error !== "")
 				return;
-			const filter = clone(this.filters[this.filterSelectId]);
+			const filter = this.filters[this.filterSelectId];
 			for (const arg of filter.parameters) {
 				if (arg.value === undefined) {
 					this.error = "";
@@ -106,8 +106,7 @@ export default defineComponent({
 		<button @mouseenter="error = areInputValid()" @mouseleave="error = areInputValid()" class="button"
 			:class="{ errorClass: error !== '' }" @click="applyFilter()">
 			{{ error !== "" ? error : "Appliquer le filtre" }}</button>
-		<button v-if="filterApplied" class="button"
-			@click="$emit('applyFilter', undefined); filterApplied = false">Supprimer le filtre</button>
+		<button v-if="filterApplied" class="button" @click="$emit('deleteImage')">Supprimer les filtres</button>
 	</div>
 </template>
 

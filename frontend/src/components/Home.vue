@@ -3,8 +3,9 @@ import Image from '@/components/Image.vue'
 import HomeSelect from '@/components/HomeSelect.vue'
 import HomeEditor from '@/components/HomeEditor.vue'
 import { defineComponent } from 'vue'
-import { ImageClass, ImageType } from '@/image'
+import { ImageType } from '@/image'
 import { Filter } from '@/filter'
+import { api } from '@/http-api'
 </script>
 <script lang="ts">
 export default defineComponent({
@@ -22,8 +23,7 @@ export default defineComponent({
 	data() {
 		return {
 			imageSelectedId: -1,
-			editor: false,
-			filter: undefined as Filter | undefined,
+			editor: false
 		}
 	},
 	created() {
@@ -37,9 +37,6 @@ export default defineComponent({
 		'images.size': {
 			handler() { this.updateImageSelectedId(); },
 		},
-		imageSelectedId() {
-			this.filter = undefined;
-		}
 	},
 	methods: {
 		updateImageSelectedId(id: number = -1) {
@@ -49,6 +46,10 @@ export default defineComponent({
 				this.imageSelectedId = id;
 			else
 				this.imageSelectedId = this.images.keys().next().value;
+		},
+		async applyFilter(filter: Filter) {
+			const newImage = await api.applyAlgorithm(this.imageSelectedId, filter)
+			this.imageSelectedId = parseInt(newImage);
 		}
 	}
 })
@@ -69,9 +70,9 @@ export default defineComponent({
 		</div>
 		<HomeSelect v-if="!editor" :images="images" :image-selected-id="imageSelectedId" @delete="id => $emit('delete', id)"
 			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
-		<HomeEditor v-else @apply-filter="(newFilter) => filter = newFilter"></HomeEditor>
+		<HomeEditor v-else @apply-filter="(filter) => applyFilter(filter)"></HomeEditor>
 		<Image class="home" v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId"
-			:images="images" :filter="filter">
+			:images="images">
 		</Image>
 		<a class="button" :href="images.get(imageSelectedId)?.data"
 			:download="images.get(imageSelectedId)?.name">Télécharger {{ images.get(imageSelectedId)?.name }}</a>
