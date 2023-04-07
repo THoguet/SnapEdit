@@ -502,7 +502,7 @@ public final class ImageProcessing {
 	 * 
 	 * @param input L'image à inverser
 	 */
-	public static void oppositeColors(Planar<GrayU8> input) {
+	public static void negativeFilter(Planar<GrayU8> input) {
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				for (int j = 0; j < input.getNumBands(); j++) {
@@ -733,18 +733,17 @@ public final class ImageProcessing {
 	/**
 	 * Effectue un filtre de type bruit gaussien sur l'image donnée en paramètre.
 	 * 
-	 * @param input  L'image à modifier
-	 * @param mean   La moyenne du bruit
-	 * @param stdDev L'écart type du bruit
+	 * @param input     L'image à modifier
+	 * @param intensity L'intensité du bruit
 	 */
-	public static void gaussianNoiseFilter(Planar<GrayU8> input, double mean, double stdDev) {
+	public static void gaussianNoiseFilter(Planar<GrayU8> input, int intensity) {
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int rgb[] = getRGBValue(input, x, y);
-				for (int i = 0; i < rgb.length; i++) {
+				for (int i = 0; i < input.getNumBands(); i++) {
 					Random rand = new Random();
 					// Genere une valeur de bruit aleatoire a partir d'une distribution gaussienne
-					double noise = rand.nextGaussian() * stdDev + mean;
+					double noise = rand.nextGaussian() * intensity * 10;
 					rgb[i] = (int) Math.round(rgb[i] + noise);
 					// On vérifie que la valeur est comprise entre 0 et 255
 					rgb[i] = Math.max(0, Math.min(255, rgb[i]));

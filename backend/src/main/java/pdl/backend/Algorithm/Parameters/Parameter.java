@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public abstract class Parameter {
 	private final String name;
-	private final String displayName;
+	private final String path;
 	private final String type;
 	private Object value;
 
-	public Parameter(String name, String displayName, String type) {
+	public Parameter(String name, String path, String type) {
 		this.name = name;
-		this.displayName = displayName;
+		this.path = path;
 		this.type = type;
 	}
 
@@ -19,8 +19,8 @@ public abstract class Parameter {
 		return this.name;
 	}
 
-	public String getDisplayName() {
-		return this.displayName;
+	public String getPath() {
+		return this.path;
 	}
 
 	public String getType() {
@@ -30,7 +30,7 @@ public abstract class Parameter {
 	public ObjectNode getNode(ObjectMapper mapper) {
 		ObjectNode node = mapper.createObjectNode();
 		node.put("name", this.name);
-		node.put("displayName", this.displayName);
+		node.put("path", this.path);
 		node.put("type", this.type);
 		return node;
 	}

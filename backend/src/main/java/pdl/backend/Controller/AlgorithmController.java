@@ -73,7 +73,7 @@ public class AlgorithmController {
 
 		algorithms.add(new Algorithm("Filtre négatif", "negative", new ArrayList<Parameter>(),
 				(Planar<GrayU8> input, List<Object> para) -> {
-					ImageProcessing.oppositeColors(input);
+					ImageProcessing.negativeFilter(input);
 				}));
 
 		algorithms.add(new Algorithm("Filtre sépia", "sepia", new ArrayList<Parameter>(),
@@ -86,7 +86,11 @@ public class AlgorithmController {
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.deleteArea(input, (int[]) para.get(0), FillingType.valueOf((String) para.get(1)));
 				}));
-
+		algorithms.add(new Algorithm("Filtre de bruit", "noise",
+				Arrays.asList(new IntegerParameter("intensity", "Intensité", 1, 100, 1)),
+				(Planar<GrayU8> input, List<Object> para) -> {
+					ImageProcessing.gaussianNoiseFilter(input, (int) para.get(0));
+				}));
 		return algorithms;
 	}
 

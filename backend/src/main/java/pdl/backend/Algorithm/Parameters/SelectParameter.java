@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class SelectParameter extends Parameter {
 	private final String[] options;
 
-	public SelectParameter(String name, String displayName, String[] options) {
-		super(name, displayName, "select");
+	public SelectParameter(String name, String path, String[] options) {
+		super(name, path, "select");
 		this.options = options;
 	}
 
