@@ -634,14 +634,17 @@ public final class ImageProcessing {
 	 * 
 	 * @param input   L'image d'entrée
 	 * @param output  L'image de sortie
-	 * @param xMin    La coordonnée x minimale de la zone à retirer
-	 * @param xMax    La coordonnée x maximale de la zone à retirer
-	 * @param yMin    La coordonnée y minimale de la zone à retirer
-	 * @param yMax    La coordonnée y maximale de la zone à retirer
+	 * @param area    Les coordonnées de la zone à supprimer
 	 * @param filling Le type de remplissage
 	 */
-	public static void removeElement(Planar<GrayU8> input,
-			int xMin, int xMax, int yMin, int yMax, FillingType filling) {
+	public static void deleteArea(Planar<GrayU8> input, int[] area, FillingType filling) {
+		if (area.length != 4) {
+			throw new IllegalArgumentException("Les coordonnées sont incorrectes");
+		}
+		int xMin = area[0];
+		int xMax = area[1];
+		int yMin = area[2];
+		int yMax = area[3];
 		if (xMin < 0 || xMax > input.width || yMin < 0 || yMax > input.height) {
 			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
 		}
