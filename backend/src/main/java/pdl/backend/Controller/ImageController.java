@@ -227,7 +227,7 @@ public class ImageController {
 			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		byte[] imageData = baos.toByteArray();
-		String name = image.getName() + "_filtered";
+		String name = "filtered_" + image.getName();
 		Image newImg;
 		try {
 			if (image.isFiltered()) {
