@@ -61,7 +61,7 @@ export const api = {
 	getImageList: (): Promise<ImageType[]> => requests.get('images', {}),
 	getAlgorithmList: (): Promise<Filter[]> => requests.get('algorithms', {}),
 	getImage: (id: number): Promise<Blob> => requests.get(`images/${id}`, { responseType: "blob" }),
-	applyAlgorithm: (id: number, filter: Filter): Promise<string> => requests.get(`images/${id}"?algorithm="${filter.path + getParameters(filter)}`, { params: getParameters(filter), responseType: "blob" }),
+	applyAlgorithm: (id: number, filter: Filter): Promise<string> => requests.get(`images/${id}?algorithm=${filter.path + getParameters(filter)}`, {}),
 	createImage: (form: FormData): Promise<HttpStatusCode> => requests.post('images', form),
 	deleteImage: (id: number): Promise<void> => requests.delete(`images/${id}`),
 	generateImage: (prompt: string, negativePrompt: string, height: number, width: number, steps: number, cfgScale: number): Promise<generateImageInterface> => stableDiffRequests.post('sdapi/v1/txt2img', {

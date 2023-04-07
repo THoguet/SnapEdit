@@ -12,6 +12,9 @@ export default defineComponent({
 	emits: {
 		delete(id: number) {
 			return id >= 0;
+		},
+		updateImageList() {
+			return true;
 		}
 	},
 	props: {
@@ -48,7 +51,12 @@ export default defineComponent({
 				this.imageSelectedId = this.images.keys().next().value;
 		},
 		async applyFilter(filter: Filter) {
+			if (filter === undefined || filter === null) {
+				return;
+			}
+			console.log(filter);
 			const newImage = await api.applyAlgorithm(this.imageSelectedId, filter)
+			this.$emit("updateImageList")
 			this.imageSelectedId = parseInt(newImage);
 		}
 	}
