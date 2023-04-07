@@ -26,7 +26,9 @@ export default defineComponent({
 	data() {
 		return {
 			imageSelectedId: -1,
-			editor: false
+			editor: false,
+			newId: -1,
+			selectedArea: { xmin: 0, ymin: 0, xmax: 0, ymax: 0 },
 		}
 	},
 	created() {
@@ -40,9 +42,16 @@ export default defineComponent({
 		'images.size': {
 			handler() { this.updateImageSelectedId(); },
 		},
+		editor() {
+			this.selectedArea = { xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
+		}
 	},
 	methods: {
 		updateImageSelectedId(id: number = -1) {
+			if (id === -1) {
+				id = this.newId;
+				this.newId = -1;
+			}
 			if (this.images.size === 0)
 				this.imageSelectedId = -1;
 			else if (id !== -1 && this.images.has(id))
@@ -55,9 +64,9 @@ export default defineComponent({
 				return;
 			}
 			console.log(filter);
-			const newImage = await api.applyAlgorithm(this.imageSelectedId, filter)
-			this.$emit("updateImageList")
-			this.imageSelectedId = parseInt(newImage);
+			const newImage = await api.applyAlgorithm(this.imageSelectedId, filter, this.selectedArea);
+			this.$emit("updateImageList");
+			this.newId = parseInt(newImage);
 		}
 	}
 })
@@ -80,7 +89,7 @@ export default defineComponent({
 			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
 		<HomeEditor v-else @apply-filter="(filter) => applyFilter(filter)"></HomeEditor>
 		<Image class="home" v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId"
-			:images="images">
+			:images="images" :redirect="editor ? 'disabled' : ''" :selected-area="selectedArea">
 		</Image>
 		<a class="button" :href="images.get(imageSelectedId)?.data"
 			:download="images.get(imageSelectedId)?.name">Télécharger {{ images.get(imageSelectedId)?.name }}</a>

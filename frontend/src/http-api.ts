@@ -2,6 +2,8 @@ import axios, { AxiosResponse, AxiosError, HttpStatusCode } from 'axios';
 import { ImageType } from '@/image';
 import { Filter, getParameters } from './filter';
 
+type area = { xmin: number, ymin: number, xmax: number, ymax: number }
+
 interface stateInterface {
 	skipped: boolean;
 	interrupted: boolean;
@@ -57,11 +59,15 @@ const stableDiffRequests = {
 	post: (url: string, body: {}) => stableDiffInstance.post(url, body, { headers: { "Content-Type": "application/json" }, }).then(responseBody),
 };
 
+function areaToString(area: area): string {
+	return `&xmin=${Math.round(area.xmin)}&ymin=${Math.round(area.ymin)}&xmax=${Math.round(area.xmax)}&ymax=${Math.round(area.ymax)}`;
+}
+
 export const api = {
 	getImageList: (): Promise<ImageType[]> => requests.get('images', {}),
 	getAlgorithmList: (): Promise<Filter[]> => requests.get('algorithms', {}),
 	getImage: (id: number): Promise<Blob> => requests.get(`images/${id}`, { responseType: "blob" }),
-	applyAlgorithm: (id: number, filter: Filter): Promise<string> => requests.get(`images/${id}?algorithm=${filter.path + getParameters(filter)}`, {}),
+	applyAlgorithm: (id: number, filter: Filter, selectedArea: area): Promise<string> => requests.get(`images/${id}?algorithm=${filter.path + getParameters(filter) + areaToString(selectedArea)}`, {}),
 	createImage: (form: FormData): Promise<HttpStatusCode> => requests.post('images', form),
 	deleteImage: (id: number): Promise<void> => requests.delete(`images/${id}`),
 	generateImage: (prompt: string, negativePrompt: string, height: number, width: number, steps: number, cfgScale: number): Promise<generateImageInterface> => stableDiffRequests.post('sdapi/v1/txt2img', {
