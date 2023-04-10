@@ -62,9 +62,7 @@ label {
 
 :deep(.imageContainer) {
 	margin: 2vw;
-	max-height: min(33vh, 33vw);
-	max-width: min(33vw, 33vh);
-	height: auto;
-	width: auto;
+	height: min(33vh, 33vw);
+	width: min(33vw, 33vh);
 }
 </style>
