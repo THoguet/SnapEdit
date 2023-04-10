@@ -1,10 +1,10 @@
 <template>
 	<div class="custom-select" @blur="open = false">
 		<div class="selected" :class="{ open: open }" @click="open = !open">
-			<span>{{ list[selected] }}</span>
+			<span>{{ map.get(selected) }}</span>
 		</div>
 		<div class="items" :class="{ selectHide: !open }">
-			<div v-for="(name, index) in list" @click="open = false; $emit('updateSelected', index)">
+			<div v-for="[index, name] in map" @click="open = false; $emit('updateSelected', index)">
 				<span>{{ name }}</span>
 			</div>
 		</div>
@@ -18,8 +18,9 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
 	props: {
-		list: {
-			type: Array as () => string[],
+		// map of id to name
+		map: {
+			type: Map<number, string>,
 			required: true,
 		},
 		selected: {
