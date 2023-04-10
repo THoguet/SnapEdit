@@ -21,7 +21,11 @@ export default defineComponent({
 		images: {
 			type: Map<number, ImageType>,
 			required: true,
-		}
+		},
+		filters: {
+			type: Array as () => Filter[],
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -29,6 +33,7 @@ export default defineComponent({
 			editor: false,
 			newId: -1,
 			selectedArea: { xmin: 0, ymin: 0, xmax: 0, ymax: 0 },
+			processed: false
 		}
 	},
 	created() {
@@ -36,19 +41,22 @@ export default defineComponent({
 			this.imageSelectedId = parseInt(this.$route.params.id as string);
 		}
 		else
-			this.updateImageSelectedId();
+			this.updateImageSelectedId(-1);
 	},
 	watch: {
-		'images.size': {
-			handler() { this.updateImageSelectedId(); },
+		images: {
+			handler() {
+				this.updateImageSelectedId(this.imageSelectedId);
+			},
+			deep: true
 		},
 		editor() {
 			this.selectedArea = { xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
 		}
 	},
 	methods: {
-		updateImageSelectedId(id: number = -1) {
-			if (id === -1) {
+		updateImageSelectedId(id: number) {
+			if (this.newId !== -1) {
 				id = this.newId;
 				this.newId = -1;
 			}
@@ -65,8 +73,16 @@ export default defineComponent({
 			}
 			console.log(filter);
 			const newImage = await api.applyAlgorithm(this.imageSelectedId, filter, this.selectedArea);
+			this.processed = !this.processed;
 			this.$emit("updateImageList");
 			this.newId = parseInt(newImage);
+		},
+		isImageFiltered(id: number) {
+			if (id === undefined || id === -1)
+				return -1;
+			if (!this.images.has(id))
+				return -1;
+			return this.images.get(id)!.filtered;
 		}
 	}
 })
@@ -86,8 +102,10 @@ export default defineComponent({
 			</nav>
 		</div>
 		<HomeSelect v-if="!editor" :images="images" :image-selected-id="imageSelectedId" @delete="id => $emit('delete', id)"
-			@updateImageSelectedId="id => updateImageSelectedId(id)"></HomeSelect>
-		<HomeEditor v-else @apply-filter="(filter) => applyFilter(filter)"></HomeEditor>
+			@updateImageSelectedId="id => updateImageSelectedId(id)" />
+		<HomeEditor v-else @apply-filter="(filter) => applyFilter(filter)" :filters="filters"
+			:image-filtered="isImageFiltered(imageSelectedId)" @delete-image="$emit('delete', imageSelectedId)"
+			@update-image-selected-id="(newid) => updateImageSelectedId(newid)" :processed="processed" />
 		<Image class="home" v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId"
 			:images="images" :redirect="editor ? 'disabled' : ''" :selected-area="selectedArea">
 		</Image>
@@ -114,6 +132,7 @@ html {
 
 
 .flex {
+	margin-top: 60px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -133,8 +152,8 @@ html {
 }
 
 :deep(.imageContainer) {
-	max-width: min(60vh, 60vw);
-	max-height: min(60vh, 60vw);
+	width: min(60vh, 60vw);
+	height: min(60vh, 60vw);
 	transform: none;
 }
 </style>

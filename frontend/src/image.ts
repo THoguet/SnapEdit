@@ -17,7 +17,3 @@ export class ImageClass implements ImageType {
 		this.filtered = filtered
 	}
 }
-// return true if a and b are equal (ignoring data)
-export function imageEquals(a: ImageType, b: ImageType): boolean {
-	return a.id === b.id && a.name === b.name && a.filtered === b.filtered
-}
