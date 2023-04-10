@@ -8,37 +8,40 @@ import CustomSelector from './CustomSelector.vue';
 </script>
 <script lang="ts">
 export default defineComponent({
+	props: {
+		imageFiltered: {
+			type: Number,
+			required: true,
+		},
+		filters: {
+			type: Array as () => Filter[],
+			required: true,
+		},
+		processed: {
+			type: Boolean,
+			required: true,
+		},
+	},
 	emits: {
+		deleteImage() {
+			return true;
+		},
 		applyFilter(filter: Filter) {
 			return filter !== null && filter !== undefined;
+		},
+		updateImageSelectedId(id: number) {
+			return id >= 0;
 		}
 	},
 	data() {
 		return {
 			filterSelectId: 0,
-			filters: [] as Filter[],
 			error: "",
-			filterApplied: false,
+			sent: false
 		};
 	},
 	created() {
-		api.getAlgorithmList().then((filters) => {
-			this.filters = filters;
-			// fill value attribute
-			for (const filter of this.filters) {
-				for (const arg of filter.parameters) {
-					if (arg.type === FilterType.range) {
-						const range = arg as RangeParameters;
-						range.value = range.min;
-					}
-					else if (arg.type === FilterType.select) {
-						const select = arg as SelectParameters;
-						select.value = select.options[0];
-					}
-				}
-			}
-			this.error = this.areInputValid();
-		});
+		this.error = this.areInputValid();
 	},
 	methods: {
 		applyFilter() {
@@ -51,7 +54,7 @@ export default defineComponent({
 					return;
 				}
 			}
-			this.filterApplied = true;
+			this.sent = true;
 			this.$emit("applyFilter", filter);
 		},
 		areInputValid() {
@@ -63,6 +66,31 @@ export default defineComponent({
 					return "Paramètre(s) du filtre invalide(s)";
 			}
 			return "";
+		},
+		convertFilters() {
+			const map = new Map<number, string>();
+			for (let i = 0; i < this.filters.length; i++) {
+				map.set(i, this.filters[i].name);
+			}
+			return map;
+		},
+		convertSelectParameters(parameters: SelectParameters) {
+			const map = new Map<number, string>();
+			for (let i = 0; i < parameters.options.length; i++) {
+				map.set(i, parameters.options[i]);;
+			}
+			return map;
+		},
+		deleteFilter() {
+			this.$emit('deleteImage');
+			this.$emit('updateImageSelectedId', this.imageFiltered)
+		},
+		titleApply() {
+			if (this.error !== "")
+				return this.error;
+			if (this.sent)
+				return "Traitement en cours...";
+			return "Appliquer le filtre";
 		}
 	},
 	watch: {
@@ -74,6 +102,9 @@ export default defineComponent({
 				this.error = this.areInputValid();
 			},
 			deep: true
+		},
+		processed() {
+			this.sent = false;
 		}
 	},
 	components: { CustomSelector }
@@ -83,8 +114,7 @@ export default defineComponent({
 <template>
 	<div class="editor">
 		<label>Sélectionner un filtre: </label>
-		<CustomSelector :list="filters.map((f) => { return f.name })" :selected="filterSelectId"
-			@update-selected="filterSelectId = $event" />
+		<CustomSelector :map="convertFilters()" :selected="filterSelectId" @update-selected="filterSelectId = $event" />
 		<!-- Filter parameters -->
 		<div v-if="filters.length !== 0" v-for="parameter in filters[filterSelectId].parameters" class="rangeInput">
 			<div v-if="parameter.type === FilterType.range">
@@ -98,15 +128,15 @@ export default defineComponent({
 			</div>
 			<div v-else-if="parameter.type === FilterType.select" class="selectParam">
 				<label>{{ parameter.name }}: </label>
-				<CustomSelector :list="(parameter as SelectParameters).options"
+				<CustomSelector :map="convertSelectParameters(parameter as SelectParameters)"
 					:selected="(parameter as SelectParameters).options.findIndex((o) => o === (parameter as SelectParameters).value)"
 					@update-selected="parameter.value = (parameter as SelectParameters).options[$event]" />
 			</div>
 		</div>
 		<button @mouseenter="error = areInputValid()" @mouseleave="error = areInputValid()" class="button"
 			:class="{ errorClass: error !== '' }" @click="applyFilter()">
-			{{ error !== "" ? error : "Appliquer le filtre" }}</button>
-		<button v-if="filterApplied" class="button" @click="$emit('deleteImage')">Supprimer les filtres</button>
+			{{ titleApply() }}</button>
+		<button v-if="imageFiltered !== -1" class="button" @click="deleteFilter()">Supprimer les filtres</button>
 	</div>
 </template>
 
