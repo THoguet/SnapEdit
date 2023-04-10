@@ -135,6 +135,7 @@ public class ImageController {
 			objectNode.put("name", image.getName());
 			objectNode.put("size", image.getSize());
 			objectNode.put("type", image.getMediaType().toString());
+			objectNode.put("filtered", image.getParentId());
 			nodes.add(objectNode);
 		}
 		return nodes;
@@ -173,11 +174,11 @@ public class ImageController {
 		Optional<Image> optImage = imageDao.retrieve(id);
 		if (!optImage.isPresent())
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		Image image = optImage.get();
+		Image imageToFilter = optImage.get();
 		// Si aucun paramètre n'est fourni, renvoie l'image brute
 		if (parameters.isEmpty()) {
-			InputStream inputStream = new ByteArrayInputStream(image.getData());
-			return ResponseEntity.ok().contentType(image.getMediaType())
+			InputStream inputStream = new ByteArrayInputStream(imageToFilter.getData());
+			return ResponseEntity.ok().contentType(imageToFilter.getMediaType())
 					.body(new InputStreamResource(inputStream));
 		}
 		final List<Algorithm> algos = AlgorithmController.algorithmList();
@@ -189,7 +190,7 @@ public class ImageController {
 		String algo = parameters.get("algorithm");
 		BufferedImage bufImg;
 		try {
-			bufImg = ImageIO.read(new ByteArrayInputStream(image.getData()));
+			bufImg = ImageIO.read(new ByteArrayInputStream(imageToFilter.getData()));
 		} catch (IOException e) {
 			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -222,25 +223,28 @@ public class ImageController {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			ImageIO.write(bufImg, image.getMediaType().getSubtype(), baos);
+			ImageIO.write(bufImg, imageToFilter.getMediaType().getSubtype(), baos);
 		} catch (IOException e) {
 			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		byte[] imageData = baos.toByteArray();
-		String name = "filtered_" + image.getName();
 		Image newImg;
 		try {
-			if (image.isFiltered()) {
-				newImg = new Image(name, imageData, image.getParent());
-				imageDao.delete(image);
+			if (imageToFilter.isFiltered()) {
+				imageDao.delete(imageToFilter);
+				newImg = new Image(imageToFilter.getRealName(), imageData, imageToFilter.getParent());
 			} else {
-				newImg = new Image(name, imageData, image);
+				final Image child = imageToFilter.getChild();
+				if (child != null) {
+					imageDao.delete(child);
+				}
+				newImg = new Image(imageToFilter.getRealName(), imageData, imageToFilter);
 			}
 		} catch (IOException e) {
 			return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		if (image.isFiltered()) {
-			imageDao.delete(image);
+		if (imageToFilter.isFiltered()) {
+			imageDao.delete(imageToFilter);
 		}
 		newImg.setFiltered(true);
 		imageDao.create(newImg);
