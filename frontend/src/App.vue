@@ -3,10 +3,10 @@ import Home from './components/Home.vue'
 import Gallery from './components/Gallery.vue';
 import NotFound from './components/NotFound.vue'
 import Upload from './components/Upload.vue'
-import StableDiff from './components/StableDiff.vue';
 import { defineComponent } from 'vue'
 import { api } from '@/http-api'
-import { ImageType, ImageClass } from './image';
+import { ImageType } from './image';
+import { Filter, FilterType, RangeParameters, SelectParameters } from './filter';
 </script>
 <script lang="ts">
 export default defineComponent({
@@ -19,7 +19,8 @@ export default defineComponent({
 	data() {
 		return {
 			images: new Map<Number, ImageType>(),
-			file: null as FileList | null
+			file: null as FileList | null,
+			filters: [] as Filter[]
 		}
 	},
 	methods: {
@@ -32,12 +33,30 @@ export default defineComponent({
 			});
 		},
 		deleteFile(id: number) {
-			this.images.delete(id);
+			if (!this.images.delete(id))
+				console.warn("Cannot delete, image not found");
 			api.deleteImage(id);
 		}
 	},
 	created() {
 		this.updateImageList();
+		api.getAlgorithmList().then((filters) => {
+			console.log(filters)
+			this.filters = filters;
+			// fill value attribute
+			for (const filter of this.filters) {
+				for (const arg of filter.parameters) {
+					if (arg.type === FilterType.range) {
+						const range = arg as RangeParameters;
+						range.value = range.min;
+					}
+					else if (arg.type === FilterType.select) {
+						const select = arg as SelectParameters;
+						select.value = select.options[0];
+					}
+				}
+			}
+		});
 	}
 })
 </script>
@@ -54,7 +73,7 @@ export default defineComponent({
 			</nav>
 		</div>
 	</header>
-	<RouterView :images="images" @delete="deleteFile" @updateImageList="updateImageList()" />
+	<RouterView :filters="filters" :images="images" @delete="deleteFile($event)" @updateImageList="updateImageList()" />
 </template>
 <style scoped>
 @import url("@/navi.css");
