@@ -31,10 +31,11 @@ export default defineComponent({
 	},
 	methods: {
 		getImage(id: number, force: boolean = false) {
-			if (!force && (this.images.has(id) && this.images.get(id)!.data != null))
+			if (!force && (this.images.has(id) && this.images.get(id)!.data != null)) {
 				this.data = this.images.get(id)!.data;
+			}
 			else
-				api.getImage(id).then((imageData) => {
+				api.getImage(this.images.get(id)!.id).then((imageData) => {
 					const reader = new window.FileReader();
 					reader.readAsDataURL(imageData);
 					reader.onload = () => {
@@ -50,15 +51,16 @@ export default defineComponent({
 			if (ctx === null) return;
 			if (this.image === null) {
 				this.image = new Image();
-				this.image.src = this.data;
-				this.image.onload = () => {
-					if (this.image === null) return;
-					this.canvas!.width = this.image.naturalWidth;
-					this.canvas!.height = this.image.naturalHeight;
-					ctx.drawImage(this.image, 0, 0, this.image.naturalWidth, this.image.naturalHeight);
-				}
-			} else {
+			}
+			this.image.src = this.data;
+			this.image.onload = () => {
+				if (this.image === null) return;
+				this.canvas!.width = this.image.naturalWidth;
+				this.canvas!.height = this.image.naturalHeight;
 				ctx.drawImage(this.image, 0, 0, this.image.naturalWidth, this.image.naturalHeight);
+				if (this.selectedArea === undefined) return;
+				ctx.fillStyle = "rgba(0, 0, 50, 0.5)";
+				ctx.fillRect(this.selectedArea.xmin, this.selectedArea.ymin, this.selectedArea.xmax - this.selectedArea.xmin, this.selectedArea.ymax - this.selectedArea.ymin);
 			}
 		},
 		handleMouse(event: MouseEvent) {
@@ -79,10 +81,8 @@ export default defineComponent({
 				}
 			}
 			if (this.selectedArea === undefined) return;
-			const ratio = this.image!.naturalWidth / this.canvas!.clientWidth;
 			if (this.canvas === null) return;
-			const ctx = this.canvas.getContext('2d');
-			if (ctx === null) return;
+			const ratio = this.image!.naturalWidth / this.canvas!.clientWidth;
 			const rect = this.canvas.getBoundingClientRect();
 			const x = event.clientX - rect.left;
 			const y = event.clientY - rect.top;
@@ -92,10 +92,12 @@ export default defineComponent({
 				this.selectedArea.xmax = x * ratio;
 				this.selectedArea.ymax = y * ratio;
 				this.mouseDowned = true;
+				this.drawImage();
 			}
 			else if (this.mouseDowned && event.type === "mousemove") {
 				this.selectedArea.xmax = x * ratio;
 				this.selectedArea.ymax = y * ratio;
+				this.drawImage();
 			}
 			else if (event.type === "mouseup") {
 				this.mouseDowned = false;
@@ -111,10 +113,8 @@ export default defineComponent({
 					this.selectedArea.ymin = this.selectedArea.ymax;
 					this.selectedArea.ymax = tmp;
 				}
+				this.drawImage();
 			}
-			this.drawImage();
-			ctx.fillStyle = "rgba(0, 0, 50, 0.5)";
-			ctx.fillRect(this.selectedArea.xmin, this.selectedArea.ymin, this.selectedArea.xmax - this.selectedArea.xmin, this.selectedArea.ymax - this.selectedArea.ymin);
 		},
 	},
 	created() {
@@ -125,6 +125,9 @@ export default defineComponent({
 			this.getImage(this.id)
 		},
 		data() {
+			this.drawImage();
+		},
+		selectedArea() {
 			this.drawImage();
 		},
 	},
@@ -147,6 +150,12 @@ export default defineComponent({
 	max-height: 100%;
 	object-fit: contain;
 	cursor: v-bind("redirect === 'disabled' ? 'crosshair' : 'pointer'");
+}
+
+.imageContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .imageContainer:hover {
