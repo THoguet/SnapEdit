@@ -42,6 +42,13 @@ export default defineComponent({
 			else
 				this.sure = true;
 		},
+		convertMapImage() {
+			const map = new Map<number, string>();
+			this.images.forEach((value, key) => {
+				map.set(key, value.name);
+			});
+			return map;
+		}
 	}
 
 })
@@ -51,8 +58,8 @@ export default defineComponent({
 <template>
 	<div class="selector">
 		<label>Sélectionner une image: </label>
-		<CustomSelector :list="Array.from(images.values()).map((i) => { return i.name })" :selected="imageSelectedId"
-			@update-selected="$emit('updateImageSelectedId', $event)" />
+		<CustomSelector :selected="imageSelectedId" @update-selected="$emit('updateImageSelectedId', $event)"
+			:map="convertMapImage()" />
 		<button class="button" @mouseleave="sure = false" @click="confirmDelete()" :class="{ confirm: sure }">
 			{{ sure ? "Confirmer" : "Supprimer" }}</button>
 	</div>
