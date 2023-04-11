@@ -15,7 +15,7 @@ interface stateInterface {
 	sampling_steps: number;
 }
 
-interface progressInterface {
+interface generateProgressInterface {
 	progress: number;
 	eta_relative: number;
 	state: stateInterface;
@@ -29,6 +29,9 @@ interface generateImageInterface {
 	info: string;
 }
 
+interface algorithmProgressInterface {
+	progress: number;
+}
 
 export const cancelRequest = axios.CancelToken.source();
 
@@ -68,6 +71,7 @@ export const api = {
 	getAlgorithmList: (): Promise<Filter[]> => requests.get('algorithms', {}),
 	getImage: (id: number): Promise<Blob> => requests.get(`images/${id}`, { responseType: "blob" }),
 	applyAlgorithm: (id: number, filter: Filter, selectedArea: area): Promise<string> => requests.get(`images/${id}?algorithm=${filter.path + getParameters(filter) + areaToString(selectedArea)}`, {}),
+	algorithmsProgress: (): Promise<algorithmProgressInterface> => requests.get('images/progress', {}),
 	createImage: (form: FormData): Promise<HttpStatusCode> => requests.post('images', form),
 	deleteImage: (id: number): Promise<void> => requests.delete(`images/${id}`),
 	generateImage: (prompt: string, negativePrompt: string, height: number, width: number, steps: number, cfgScale: number): Promise<generateImageInterface> => stableDiffRequests.post('sdapi/v1/txt2img', {
@@ -83,5 +87,5 @@ export const api = {
 		"send_images": true,
 		"save_images": false,
 	}),
-	progress: (): Promise<progressInterface> => stableDiffRequests.get('sdapi/v1/progress', {}),
+	generateProgress: (): Promise<generateProgressInterface> => stableDiffRequests.get('sdapi/v1/progress', {}),
 };

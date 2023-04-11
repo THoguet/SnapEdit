@@ -23,6 +23,7 @@ import pdl.backend.Algorithm.Algorithm;
 import pdl.backend.Algorithm.Parameters.Parameter;
 import pdl.backend.Image.Image;
 import pdl.backend.Image.ImageDao;
+import pdl.backend.Image.ImageProcessing;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -249,5 +250,12 @@ public class ImageController {
 		newImg.setFiltered(true);
 		imageDao.create(newImg);
 		return ResponseEntity.ok().body(newImg.getId());
+	}
+
+	@GetMapping(value = "/images/progress", produces = { "application/json" })
+	public ResponseEntity<?> getProgress() {
+		ObjectNode objectNode = mapper.createObjectNode();
+		objectNode.put("progress", ImageProcessing.getProgress());
+		return ResponseEntity.ok().body(objectNode);
 	}
 }

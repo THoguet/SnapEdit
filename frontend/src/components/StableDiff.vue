@@ -144,7 +144,7 @@ export default defineComponent({
 		started() {
 			if (this.started) {
 				const interval = setInterval(() => {
-					api.progress().then((data) => {
+					api.generateProgress().then((data) => {
 						this.progress = data.progress * 100;
 						this.eta = Math.floor(data.eta_relative);
 						if (data.current_image !== null) {

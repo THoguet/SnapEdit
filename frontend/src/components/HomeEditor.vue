@@ -21,6 +21,10 @@ export default defineComponent({
 			type: Boolean,
 			required: true,
 		},
+		progress: {
+			type: Number,
+			required: true,
+		}
 	},
 	emits: {
 		deleteImage() {
@@ -91,6 +95,9 @@ export default defineComponent({
 			if (this.sent)
 				return "Traitement en cours...";
 			return "Appliquer le filtre";
+		},
+		styledProgress() {
+			return "linear-gradient(to right, #00ff00 " + this.progress + "%, var(--button-color) " + this.progress + "%)";
 		}
 	},
 	watch: {
@@ -133,9 +140,9 @@ export default defineComponent({
 					@update-selected="parameter.value = (parameter as SelectParameters).options[$event]" />
 			</div>
 		</div>
-		<button @mouseenter="error = areInputValid()" @mouseleave="error = areInputValid()" class="button"
-			:class="{ errorClass: error !== '' }" @click="applyFilter()">
-			{{ titleApply() }}</button>
+		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"
+			@mouseleave="error = areInputValid()" class="button" :class="{ errorClass: error !== '' }"
+			@click="applyFilter()">{{ titleApply() }}</button>
 		<button v-if="imageFiltered !== -1" class="button" @click="deleteFilter()">Supprimer les filtres</button>
 	</div>
 </template>

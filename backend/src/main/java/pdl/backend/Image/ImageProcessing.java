@@ -9,10 +9,22 @@ import java.util.Map;
 import java.util.Random;
 
 import boofcv.concurrency.BoofConcurrency;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ImageProcessing {
 
+	private static final AtomicInteger counter = new AtomicInteger(-1);
+	private static int nbSteps = 0;
+
 	private ImageProcessing() {
+	}
+
+	public static int getProgress() {
+		if (nbSteps == 0)
+			return -1;
+		if (counter.get() == -1)
+			return -1;
+		return Math.round(((float) ImageProcessing.counter.get() / (float) nbSteps) * 100);
 	}
 
 	/**
@@ -53,13 +65,16 @@ public final class ImageProcessing {
 	 * @param input l'image d'entrée en couleur
 	 */
 	public static void convertColorToGray(Planar<GrayU8> input) {
+		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
 				int gray = (int) (0.3 * rgb[0] + 0.59 * rgb[1] + 0.11 * rgb[2]);
 				setRGBValue(input, x, y, new int[] { gray, gray, gray });
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
 	/**
@@ -71,6 +86,7 @@ public final class ImageProcessing {
 	 * @param delta La valeur du décalage à appliquer à la luminosité de l'image.
 	 */
 	public static void changeLuminosity(Planar<GrayU8> input, int delta) {
+		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
@@ -85,7 +101,9 @@ public final class ImageProcessing {
 				}
 				setRGBValue(input, x, y, rgb);
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
 	/**
@@ -95,6 +113,7 @@ public final class ImageProcessing {
 	 * @param input L'image à étaler.
 	 */
 	public static void histogram(Planar<GrayU8> input) {
+		nbSteps = input.height;
 		int h[] = new int[256];
 		Planar<GrayU8> grayInput = input.clone();
 		convertColorToGray(grayInput);
@@ -129,7 +148,9 @@ public final class ImageProcessing {
 					input.getBand(j).set(x, y, LUT[val]);
 				}
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
 	/**
@@ -225,6 +246,7 @@ public final class ImageProcessing {
 		if (hue < 0 || hue > 360) {
 			throw new IllegalArgumentException("Hue doit être compris entre 0 et 360");
 		}
+		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, j -> {
 			for (int i = 0; i < input.width; i++) {
 				float[] hsv = new float[3];
@@ -235,7 +257,9 @@ public final class ImageProcessing {
 				hsvToRgb(hsv[0], hsv[1], hsv[2], rgb);
 				setRGBValue(input, i, j, rgb);
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
 	/**
@@ -246,6 +270,7 @@ public final class ImageProcessing {
 	 * @param input L'image d'entrée en niveaux de gris.
 	 */
 	public static void gradientImageSobel(Planar<GrayU8> input) {
+		nbSteps = input.height;
 		Planar<GrayU8> output = input.createSameShape();
 		int h1[][] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 		int h2[][] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
@@ -281,6 +306,7 @@ public final class ImageProcessing {
 				int[] rgb = { value, value, value };
 				setRGBValue(output, x, y, rgb);
 			}
+			counter.incrementAndGet();
 		});
 		for (int i = 0; i < input.width; i++) {
 			for (int j = 0; j < input.height; j++) {
@@ -288,6 +314,7 @@ public final class ImageProcessing {
 				setRGBValue(input, i, j, rgb);
 			}
 		}
+		counter.set(-1);
 	}
 
 	/**
@@ -411,6 +438,7 @@ public final class ImageProcessing {
 	 * @param borderType Le type de bord à utiliser pour la convolution
 	 */
 	public static void convolution(Planar<GrayU8> input, int[][] kernel, BorderType borderType) {
+		nbSteps = input.height;
 		Planar<GrayU8> copy = input.clone();
 		int size = kernel.length;
 		int half = kernel.length / 2;
@@ -494,7 +522,9 @@ public final class ImageProcessing {
 				}
 				setRGBValue(input, x, y, totalValue);
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
 	/**
@@ -503,6 +533,7 @@ public final class ImageProcessing {
 	 * @param input L'image à inverser
 	 */
 	public static void negativeFilter(Planar<GrayU8> input) {
+		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				for (int j = 0; j < input.getNumBands(); j++) {
@@ -510,7 +541,9 @@ public final class ImageProcessing {
 					input.getBand(j).set(x, y, 255 - gl);
 				}
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
 	/**
@@ -522,6 +555,7 @@ public final class ImageProcessing {
 		if (input.getNumBands() == 1) {
 			return;
 		}
+		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
@@ -542,10 +576,12 @@ public final class ImageProcessing {
 				}
 				setRGBValue(input, x, y, new int[] { tr, tg, tb });
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 
-	public enum FillingType {
+	public static enum FillingType {
 		SKIP, CONVOLUTION, LEFT, RIGHT, TOP, BOTTOM
 	}
 
@@ -737,6 +773,7 @@ public final class ImageProcessing {
 	 * @param intensity L'intensité du bruit
 	 */
 	public static void gaussianNoiseFilter(Planar<GrayU8> input, int intensity) {
+		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int rgb[] = getRGBValue(input, x, y);
@@ -755,6 +792,8 @@ public final class ImageProcessing {
 				}
 				setRGBValue(input, x, y, rgb);
 			}
+			counter.incrementAndGet();
 		});
+		counter.set(-1);
 	}
 }
