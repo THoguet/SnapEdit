@@ -1,14 +1,9 @@
 <template>
 	<div>
 		<div class="preview">
-			<div v-if="started" class="loadingbar">
-				<div class="loadedbar" :style="{ width: progress + '%' }">
-					<span>ETA: {{ eta }}s</span>
-				</div>
-			</div>
 			<img :src="generatedImage" />
 		</div>
-		<div class="dl" v-if="generatedImage != ''">
+		<div class="dl" v-if="generatedImage != '' && !started">
 			<a :href="generatedImage" download="generated.png" class="button">Download</a>
 			<button class="button" @click="sendImage()" :class="{ sent: sent }">{{ sent ? "Envoyé" : "Upload to server"
 			}}</button>
@@ -38,8 +33,8 @@
 				<input type="number" v-model.number="cfgScale" />
 			</div>
 			<input type="range" :min="minmaxCfgScale.min" :max="minmaxCfgScale.max" v-model.number="cfgScale" />
-			<button :disabled="started" class="button" @click="generate">{{ started ? "Generation en cours" :
-				"Generate" }}</button>
+			<button :style="{ background: styledProgress() }" :disabled="started" class="button" @click="generate">{{
+				started ? "ETA: " + eta + "s" : "Generate" }}</button>
 		</div>
 	</div>
 </template>
@@ -114,6 +109,9 @@ export default defineComponent({
 					this.$emit('updateImageList');
 				});
 			}
+		},
+		styledProgress() {
+			return "linear-gradient(to right, #00ff00 " + this.progress + "%, var(--button-color) " + this.progress + "%)";
 		}
 	},
 	watch: {
@@ -183,6 +181,7 @@ label {
 	width: 100%;
 	margin: 0;
 	margin-bottom: 1vh;
+	border-radius: 5px;
 }
 
 .form input {
@@ -217,24 +216,6 @@ a.button {
 .labelInput input {
 	width: 37px;
 }
-
-.loadingbar {
-	width: 100%;
-	height: 25px;
-	background-color: #c9c9c9;
-	margin-bottom: 25px;
-}
-
-.loadedbar {
-	height: 100%;
-	background-color: #4caf50;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: row;
-	white-space: nowrap;
-}
-
 
 .preview {
 	display: flex;
