@@ -21,6 +21,7 @@ export default defineComponent({
 			classSendButton: "",
 			requestSent: 0,
 			requestEnded: 0,
+			requestError: 0
 		}
 	},
 	props: {
@@ -48,6 +49,12 @@ export default defineComponent({
 				this.classSendButton = "error"
 				return;
 			}
+			if (this.requestError > 0) {
+				this.titleSendButton = "Erreur lors de l'envoi"
+				this.classSendButton = "error"
+				this.requestError = 0;
+				return;
+			}
 			this.requestEnded = 0;
 			this.requestSent = 0;
 			this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.file.length + ")";
@@ -56,7 +63,8 @@ export default defineComponent({
 				formData.append('file', file);
 				this.requestSent++;
 				const resp = api.createImage(formData);
-				resp.then(() => { this.requestEnded++; })
+				resp.then(() => { this.requestEnded++; });
+				resp.catch(() => { this.requestError++; });
 			});
 			this.resetFile();
 		},
@@ -110,6 +118,12 @@ export default defineComponent({
 				this.$emit('updateImageList');
 			} else
 				this.titleSendButton = "Envoi en cours (" + this.requestEnded + "/" + this.requestSent + ")";
+		},
+		requestError() {
+			if (this.requestError > 0) {
+				this.titleSendButton = "Erreur lors de l'envoi"
+				this.classSendButton = "error"
+			}
 		}
 	}
 })
