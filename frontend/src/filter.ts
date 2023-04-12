@@ -1,6 +1,8 @@
 export enum FilterType {
 	"range" = "range",
 	"select" = "select",
+	"color" = "color",
+	"boolean" = "boolean"
 }
 
 
@@ -16,6 +18,14 @@ export abstract class Parameters {
 		this.type = type
 	}
 
+}
+
+export class ColorParameters extends Parameters {
+	value: string
+	constructor(name: string, displayName: string, value: string) {
+		super(name, displayName, FilterType.color)
+		this.value = value;
+	}
 }
 
 export class RangeParameters extends Parameters {
@@ -68,17 +78,4 @@ export function getParameters(f: Filter): string {
 		}
 	}
 	).join("&")
-}
-
-export function clone(f: Filter): Filter {
-	return new Filter(f.name, f.path, f.parameters.map((param) => {
-		switch (param.type) {
-			case FilterType.range:
-				const paramCastRange = param as RangeParameters
-				return new RangeParameters(param.name, param.displayName, paramCastRange.min, paramCastRange.max, paramCastRange.step, paramCastRange.value)
-			case FilterType.select:
-				const paramCastSelect = param as SelectParameters
-				return new SelectParameters(param.name, param.displayName, paramCastSelect.options, paramCastSelect.value)
-		}
-	}))
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { defineComponent } from 'vue'
-import { Filter, clone, FilterType, RangeParameters, SelectParameters } from '@/filter'
+import { Filter, FilterType, RangeParameters, SelectParameters } from '@/filter'
 import { api } from "@/http-api";
 import CustomSelector from './CustomSelector.vue';
 
@@ -138,6 +138,14 @@ export default defineComponent({
 				<CustomSelector :map="convertSelectParameters(parameter as SelectParameters)"
 					:selected="(parameter as SelectParameters).options.findIndex((o) => o === (parameter as SelectParameters).value)"
 					@update-selected="parameter.value = (parameter as SelectParameters).options[$event]" />
+			</div>
+			<div v-else-if="parameter.type === FilterType.boolean">
+				<label>{{ parameter.name }}: </label>
+				<input type="checkbox" v-model="parameter.value" />
+			</div>
+			<div v-else-if="parameter.type === FilterType.color">
+				<label>{{ parameter.name }}: </label>
+				<input type="color" v-model="parameter.value" />
 			</div>
 		</div>
 		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"
