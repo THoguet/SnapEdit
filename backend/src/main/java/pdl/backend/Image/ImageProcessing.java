@@ -66,16 +66,13 @@ public final class ImageProcessing {
 	 * @param input l'image d'entrée en couleur
 	 */
 	public static void convertColorToGray(Planar<GrayU8> input) {
-		nbSteps = input.height;
 		BoofConcurrency.loopFor(0, input.height, y -> {
 			for (int x = 0; x < input.width; x++) {
 				int[] rgb = getRGBValue(input, x, y);
 				int gray = (int) (0.3 * rgb[0] + 0.59 * rgb[1] + 0.11 * rgb[2]);
 				setRGBValue(input, x, y, new int[] { gray, gray, gray });
 			}
-			counter.incrementAndGet();
 		});
-		counter.set(-1);
 	}
 
 	/**
@@ -309,12 +306,7 @@ public final class ImageProcessing {
 			}
 			counter.incrementAndGet();
 		});
-		for (int i = 0; i < input.width; i++) {
-			for (int j = 0; j < input.height; j++) {
-				int[] rgb = getRGBValue(output, i, j);
-				setRGBValue(input, i, j, rgb);
-			}
-		}
+		input.setTo(output);
 		counter.set(-1);
 	}
 
@@ -814,12 +806,15 @@ public final class ImageProcessing {
 		if (xMin < 0 || xMax > input.width || yMin < 0 || yMax > input.height) {
 			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
 		}
+		nbSteps = xMax - xMin + 1;
 		Planar<GrayU8> output = new Planar<>(GrayU8.class, xMax - xMin + 1, yMax - yMin + 1, input.getNumBands());
-		for (int i = xMin; i <= xMax; i++) {
+		BoofConcurrency.loopFor(xMin, xMax, i -> {
 			for (int j = yMin; j <= yMax; j++) {
 				setRGBValue(output, i - xMin, j - yMin, getRGBValue(input, i, j));
 			}
-		}
+			counter.incrementAndGet();
+		});
+		counter.set(-1);
 		input.setTo(output);
 	}
 }

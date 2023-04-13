@@ -83,6 +83,7 @@ public class AlgorithmController {
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.sepiaFilter(input);
 				}));
+
 		algorithms.add(new Algorithm("Suppression zone", "deleteArea",
 				Arrays.asList(new AreaParameter("Zone", "area"),
 						new SelectParameter("fillingType", "Type de remplissage", fillingTypes)),
@@ -90,16 +91,19 @@ public class AlgorithmController {
 					ImageProcessing.deleteArea(input, (Area) para.get(0),
 							FillingType.valueOf((String) para.get(1)));
 				}));
+
 		algorithms.add(new Algorithm("Filtre de bruit", "noise",
 				Arrays.asList(new IntegerParameter("intensity", "Intensité", 1, 100, 1)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.gaussianNoiseFilter(input, (int) para.get(0));
 				}));
+
 		algorithms.add(new Algorithm("Rognage", "crop",
 				Arrays.asList(new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.crop(input, (Area) para.get(0));
 				}));
+
 		return algorithms;
 	}
 
