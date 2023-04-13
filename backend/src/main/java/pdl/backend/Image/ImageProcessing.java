@@ -475,7 +475,8 @@ public final class ImageProcessing {
 	 * 
 	 * @param input    L'image d'entrée
 	 * @param oldColor La couleur choisie en hexadecimal
-	 * @param range    définit la gamme de couleur choisie
+	 * @param range    définit la gamme de couleur choisie, elle peut aller de 0 à
+	 *                 179.
 	 * @param newColor La couleur donnée qui va être appliquée
 	 * @param keep     Permet de choisir entre garder la couleur choisie puis
 	 *                 modifie tout le reste ou modifie uniquement la couleur
@@ -580,6 +581,35 @@ public final class ImageProcessing {
 						for (int band = 0; band < 3; band++)
 							input.getBand(band).set(x, y, rgb[band]);
 					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * Applique une nouvelle couleur à la place de la couleur choisie si keep est
+	 * faux
+	 * ou à la place de toutes les autres couleurs si keep est vrai.
+	 * 
+	 * @param input     L'image d'entrée
+	 * @param intensity L'intensité de la saturation variant de 0 à 1
+	 */
+	public static void saturation(Planar<GrayU8> input, double intensity) {
+		for (int y = 0; y < input.height; y++) {
+			for (int x = 0; x < input.width; x++) {
+				int rgb[] = new int[3];
+				float hsv[] = new float[3];
+				float s;
+				for (int band = 0; band < 3; band++) {
+					rgb[band] = input.getBand(band).get(x, y);
+				}
+				rgbToHsv(rgb[0], rgb[1], rgb[2], hsv);
+				s = (float) (hsv[1] * intensity);
+				s = Math.min(Math.max(s, 0.0f), 1.0f);
+				hsvToRgb(hsv[0], s, hsv[2], rgb);
+				for (int band = 0; band < 3; band++) {
+					input.getBand(band).set(x, y, rgb[band]);
 				}
 			}
 		}
