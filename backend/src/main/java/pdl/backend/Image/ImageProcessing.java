@@ -731,27 +731,65 @@ public final class ImageProcessing {
 				} else if (filling == FillingType.LEFT) {
 					int ind = xMin - (i - xMin);
 					if (ind < 0) {
-						ind = 0;
+						ind = -ind;
+					}
+					while (ind > 2 * xMin) {
+						ind -= 2 * xMin;
+					}
+					if (ind > xMin) {
+						ind = xMin - (ind - xMin);
 					}
 					setRGBValue(input, i, j, getRGBValue(input, ind, j));
 				} else if (filling == FillingType.RIGHT) {
-					int ind = xMax + (xMax - i);
-					if (ind >= input.width) {
-						ind = input.width - 1;
+					int ind = xMax;
+					boolean decrease = false;
+					for (int k = xMax; k >= i; k--) {
+						if (decrease) {
+							ind--;
+							if (ind == xMax) {
+								decrease = false;
+								ind++;
+							}
+						} else {
+							ind++;
+							if (ind == input.width) {
+								decrease = true;
+								ind--;
+							}
+						}
 					}
 					setRGBValue(input, i, j, getRGBValue(input, ind, j));
 				} else if (filling == FillingType.TOP) {
-					int ind = yMin - (i - yMin);
+					int ind = yMin - (j - yMin);
 					if (ind < 0) {
-						ind = 0;
+						ind = -ind;
 					}
-					setRGBValue(input, i, j, getRGBValue(input, i, yMin - (j - yMin)));
+					while (ind > 2 * yMin) {
+						ind -= 2 * yMin;
+					}
+					if (ind > yMin) {
+						ind = yMin - (ind - yMin);
+					}
+					setRGBValue(input, i, j, getRGBValue(input, i, ind));
 				} else if (filling == FillingType.BOTTOM) {
-					int ind = yMax + (yMax - i);
-					if (ind >= input.height) {
-						ind = input.height - 1;
+					int ind = yMax;
+					boolean decrease = false;
+					for (int k = yMax; k >= j; k--) {
+						if (decrease) {
+							ind--;
+							if (ind == yMax) {
+								decrease = false;
+								ind++;
+							}
+						} else {
+							ind++;
+							if (ind == input.height) {
+								decrease = true;
+								ind--;
+							}
+						}
 					}
-					setRGBValue(input, i, j, getRGBValue(input, i, yMax + (yMax - j)));
+					setRGBValue(input, i, j, getRGBValue(input, i, ind));
 				} else {
 					setRGBValue(input, i, j, getRGBValue(input, i, j));
 				}
