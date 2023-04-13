@@ -453,4 +453,135 @@ public final class ImageProcessing {
 			}
 		});
 	}
+
+	/**
+	 * 
+	 * retorune la valeur seuil d'en dessous (0-60-120-180-240-300)
+	 * 
+	 * @param h le niveau hue de la couleur du pixel (en HSV)
+	 */
+	private static int getFloorLevel(float h) {
+		int floorLevel = 0;
+		while (floorLevel + 60 < h)
+			floorLevel += 60;
+		return floorLevel;
+	}
+
+	/**
+	 * 
+	 * Applique une nouvelle couleur à la place de la couleur choisie si keep est
+	 * faux
+	 * ou à la place de toutes les autres couleurs si keep est vrai.
+	 * 
+	 * @param input    L'image d'entrée
+	 * @param oldColor La couleur choisie en hexadecimal
+	 * @param range    définit la gamme de couleur choisie
+	 * @param newColor La couleur donnée qui va être appliquée
+	 * @param keep     Permet de choisir entre garder la couleur choisie puis
+	 *                 modifie tout le reste ou modifie uniquement la couleur
+	 *                 choisie
+	 */
+	public static void changeColoration(Planar<GrayU8> input, String hexOldColor, int range,
+			String newColor, boolean keep) {
+
+		int r = Integer.valueOf(hexOldColor.substring(1, 3), 16);
+		int g = Integer.valueOf(hexOldColor.substring(3, 5), 16);
+		int b = Integer.valueOf(hexOldColor.substring(5, 7), 16);
+
+		float hsvTMP[] = new float[3];
+		rgbToHsv(r, g, b, hsvTMP);
+		float hue = hsvTMP[0];
+
+		float tmpMin = ((hue - range) + 360) % 360;
+		float tmpMax = (hue + range) % 360;
+		System.out.println("aimed hue : " + hue);
+		System.out.println("tmpMin = " + tmpMin + "; tmpMax = " + tmpMax + "; keep = " + keep);
+		if (tmpMin > tmpMax) {
+			float tmp = tmpMin;
+			tmpMin = tmpMax;
+			tmpMax = tmp;
+			keep = !keep;
+		}
+		System.out.println("tmpMin = " + tmpMin + "; tmpMax = " + tmpMax + "; keep = " + keep);
+
+		int deltaColor = 0;
+		switch (newColor) {
+			case "red":
+				deltaColor = 0;
+				break;
+			case "yellow":
+				deltaColor = 60;
+				break;
+			case "green":
+				deltaColor = 120;
+				break;
+			case "cyan":
+				deltaColor = 180;
+				break;
+			case "blue":
+				deltaColor = 240;
+				break;
+			case "magenta":
+				deltaColor = 300;
+				break;
+			default:
+				break;
+		}
+
+		// oldColor is the name of the color we want to modify / keep
+		// colorLevel is the floor of a 60-digit-wide range (RED = 0-59, YELLOW =
+		// 60-119, etc...) representing with numbers oldColor
+
+		// newColor is the name of the color we want to apply on each concerned pixel
+		// newColorDelta is the ammount we will add to obtain the desired shade of the
+		// new color
+
+		// example : old color is CYAN, we want to modify it, the new color is MAGENTA :
+		// colorLevel = 180, we take a pixel, hue is 214, we get the shade by
+		// substracting it the colorLevel :
+		// shade = 214 - 180 = 34
+		// we now add the delta to the shade and we get the desired hue that we will
+		// apply :
+		// newHue = shade + newColorDelta = 34 + 300 = 334. We then just modify the hue
+		// of the pixel
+		// and we finaly finished modifying the color of the pixel while keeping its
+		// shade
+
+		for (int y = 0; y < input.height; y++) {
+			for (int x = 0; x < input.width; x++) {
+				int rgb[] = new int[3];
+				float hsv[] = new float[3];
+				for (int band = 0; band < 3; band++)
+					rgb[band] = input.getBand(band).get(x, y);
+
+				rgbToHsv(rgb[0], rgb[1], rgb[2], hsv);
+				float h = hsv[0];
+				float s = hsv[1];
+				float v = hsv[2];
+
+				boolean test1 = keep && (h >= tmpMin && h < tmpMax);
+				boolean test2 = (!keep) && (h < tmpMin || h >= tmpMax);
+				if (test1 || test2) {
+					continue;
+				} else {
+					if (newColor == "grey") {
+						int gl = 0;
+						double coeff[] = { 0.3, 0.59, 0.11 };
+
+						for (int band = 0; band < 3; band++)
+							gl += (coeff[band] * rgb[band]);
+
+						for (int band = 0; band < 3; band++)
+							input.getBand(band).set(x, y, gl);
+					} else {
+						h = (h - getFloorLevel(h)) + deltaColor;
+						hsvToRgb(h, s, v, rgb);
+
+						for (int band = 0; band < 3; band++)
+							input.getBand(band).set(x, y, rgb[band]);
+					}
+				}
+			}
+		}
+	}
 }
