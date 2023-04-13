@@ -3,6 +3,7 @@ package pdl.backend.Image;
 import boofcv.struct.border.BorderType;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
+import pdl.backend.Area;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -673,14 +674,14 @@ public final class ImageProcessing {
 	 * @param area    Les coordonnées de la zone à supprimer
 	 * @param filling Le type de remplissage
 	 */
-	public static void deleteArea(Planar<GrayU8> input, int[] area, FillingType filling) {
-		if (area.length != 4) {
-			throw new IllegalArgumentException("Les coordonnées sont incorrectes");
+	public static void deleteArea(Planar<GrayU8> input, Area area, FillingType filling) {
+		if (area.isEmpty()) {
+			throw new IllegalArgumentException("La zone est vide");
 		}
-		int xMin = area[0];
-		int xMax = area[1];
-		int yMin = area[2];
-		int yMax = area[3];
+		int xMin = area.getxMin();
+		int xMax = area.getxMax();
+		int yMin = area.getyMin();
+		int yMax = area.getyMax();
 		if (xMin < 0 || xMax > input.width || yMin < 0 || yMax > input.height) {
 			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
 		}
@@ -795,5 +796,30 @@ public final class ImageProcessing {
 			counter.incrementAndGet();
 		});
 		counter.set(-1);
+	}
+
+	/**
+	 * Rogne l'image en fonction de l'area donnée en paramètre
+	 * 
+	 * @param input L'image à rogner
+	 * @param area  L'area à utiliser pour rogner l'image
+	 */
+	public static void crop(Planar<GrayU8> input, Area area) {
+		if (area.isEmpty())
+			throw new IllegalArgumentException("La zone est vide");
+		int xMin = area.getxMin();
+		int xMax = area.getxMax();
+		int yMin = area.getyMin();
+		int yMax = area.getyMax();
+		if (xMin < 0 || xMax > input.width || yMin < 0 || yMax > input.height) {
+			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
+		}
+		Planar<GrayU8> output = new Planar<>(GrayU8.class, xMax - xMin + 1, yMax - yMin + 1, input.getNumBands());
+		for (int i = xMin; i <= xMax; i++) {
+			for (int j = yMin; j <= yMax; j++) {
+				setRGBValue(output, i - xMin, j - yMin, getRGBValue(input, i, j));
+			}
+		}
+		input.setTo(output);
 	}
 }

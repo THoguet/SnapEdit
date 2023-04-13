@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue';
 import { api } from '@/http-api';
 import { ImageType } from '@/image';
+import { Area } from '@/filter';
 </script>
 <script lang="ts">
 export default defineComponent({
@@ -18,7 +19,7 @@ export default defineComponent({
 			type: String
 		},
 		selectedArea: {
-			type: Object as () => { xmin: number, ymin: number, xmax: number, ymax: number },
+			type: Area,
 		}
 	},
 	data() {
@@ -60,7 +61,7 @@ export default defineComponent({
 				ctx.drawImage(this.image, 0, 0, this.image.naturalWidth, this.image.naturalHeight);
 				if (this.selectedArea === undefined) return;
 				ctx.fillStyle = "rgba(0, 0, 50, 0.5)";
-				ctx.fillRect(this.selectedArea.xmin, this.selectedArea.ymin, this.selectedArea.xmax - this.selectedArea.xmin, this.selectedArea.ymax - this.selectedArea.ymin);
+				ctx.fillRect(this.selectedArea.xMin, this.selectedArea.yMin, this.selectedArea.xMax - this.selectedArea.xMin, this.selectedArea.yMax - this.selectedArea.yMin);
 			}
 		},
 		handleMouse(event: MouseEvent) {
@@ -87,31 +88,31 @@ export default defineComponent({
 			const x = event.clientX - rect.left;
 			const y = event.clientY - rect.top;
 			if (event.type === "mousedown") {
-				this.selectedArea.xmin = x * ratio;
-				this.selectedArea.ymin = y * ratio;
-				this.selectedArea.xmax = x * ratio;
-				this.selectedArea.ymax = y * ratio;
+				this.selectedArea.xMin = x * ratio;
+				this.selectedArea.yMin = y * ratio;
+				this.selectedArea.xMax = x * ratio;
+				this.selectedArea.yMax = y * ratio;
 				this.mouseDowned = true;
 				this.drawImage();
 			}
 			else if (this.mouseDowned && event.type === "mousemove") {
-				this.selectedArea.xmax = x * ratio;
-				this.selectedArea.ymax = y * ratio;
+				this.selectedArea.xMax = x * ratio;
+				this.selectedArea.yMax = y * ratio;
 				this.drawImage();
 			}
 			else if (event.type === "mouseup") {
 				this.mouseDowned = false;
-				this.selectedArea.xmax = x * ratio;
-				this.selectedArea.ymax = y * ratio;
-				if (this.selectedArea.xmin > this.selectedArea.xmax) {
-					const tmp = this.selectedArea.xmin;
-					this.selectedArea.xmin = this.selectedArea.xmax;
-					this.selectedArea.xmax = tmp;
+				this.selectedArea.xMax = x * ratio;
+				this.selectedArea.yMax = y * ratio;
+				if (this.selectedArea.xMin > this.selectedArea.xMax) {
+					const tmp = this.selectedArea.xMin;
+					this.selectedArea.xMin = this.selectedArea.xMax;
+					this.selectedArea.xMax = tmp;
 				}
-				if (this.selectedArea.ymin > this.selectedArea.ymax) {
-					const tmp = this.selectedArea.ymin;
-					this.selectedArea.ymin = this.selectedArea.ymax;
-					this.selectedArea.ymax = tmp;
+				if (this.selectedArea.yMin > this.selectedArea.yMax) {
+					const tmp = this.selectedArea.yMin;
+					this.selectedArea.yMin = this.selectedArea.yMax;
+					this.selectedArea.yMax = tmp;
 				}
 				this.drawImage();
 			}

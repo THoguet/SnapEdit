@@ -182,7 +182,7 @@ public class ImageController {
 			return ResponseEntity.ok().contentType(imageToFilter.getMediaType())
 					.body(new InputStreamResource(inputStream));
 		}
-		final List<Algorithm> algos = AlgorithmController.algorithmList();
+		final List<Algorithm> algos = AlgorithmController.ALGORITHMS;
 		// Vérifie la présence du paramètre "algorithm"
 		if (!parameters.containsKey("algorithm")) {
 			return JSONError("First parameter should be 'algorithm'", HttpStatus.BAD_REQUEST);
@@ -211,7 +211,6 @@ public class ImageController {
 				}
 				try {
 					a.apply(input);
-
 				} catch (Exception e) {
 					return JSONError("There was an internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 				}

@@ -3,23 +3,21 @@ package pdl.backend.Algorithm.Parameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import pdl.backend.Area;
+
 public class AreaParameter extends Parameter {
+
+	private final Area area;
 
 	public AreaParameter(String name, String path) {
 		super(name, path, "area");
+		area = new Area(0, 0, 0, 0);
 	}
 
 	@Override
 	public void setValue(String value) {
-		String[] values = value.split(";");
-		if (values.length != 4) {
-			throw new IllegalArgumentException("Area parameter must have 4 values");
-		}
-		int[] intValues = new int[4];
-		for (int i = 0; i < 4; i++) {
-			intValues[i] = Integer.parseInt(values[i]);
-		}
-		super.setValueObject(intValues);
+		this.area.setValues(value);
+		super.setValueObject(this.area);
 	}
 
 	public ObjectNode getNode(ObjectMapper mapper) {

@@ -2,7 +2,8 @@ export enum FilterType {
 	"range" = "range",
 	"select" = "select",
 	"color" = "color",
-	"boolean" = "boolean"
+	"boolean" = "boolean",
+	"area" = "area"
 }
 
 
@@ -52,6 +53,31 @@ export class SelectParameters extends Parameters {
 	}
 }
 
+export class Area {
+	xMin: number
+	xMax: number
+	yMin: number
+	yMax: number
+
+	constructor(xMin: number, xMax: number, yMin: number, yMax: number) {
+		this.xMin = xMin
+		this.xMax = xMax
+		this.yMin = yMin
+		this.yMax = yMax
+	}
+
+	toString(): string {
+		return Math.round(this.xMin) + ";" + Math.round(this.yMin) + ";" + Math.round(this.xMax) + ";" + Math.round(this.yMax)
+	}
+}
+
+export class AreaParameters extends Parameters {
+	value: Area
+	constructor(name: string, displayName: string, value: Area) {
+		super(name, displayName, FilterType.select)
+		this.value = value;
+	}
+}
 
 export class Filter {
 	name: string
@@ -75,6 +101,13 @@ export function getParameters(f: Filter): string {
 			case FilterType.select:
 				const paramCastSelect = param as SelectParameters
 				return paramCastSelect.name + "=" + paramCastSelect.value
+			case FilterType.color:
+				const paramCastColor = param as ColorParameters
+				return paramCastColor.name + "=" + paramCastColor.value
+			case FilterType.area:
+				console.log("area")
+				const paramCastArea = param as AreaParameters
+				return paramCastArea.name + "=" + paramCastArea.value.toString()
 		}
 	}
 	).join("&")

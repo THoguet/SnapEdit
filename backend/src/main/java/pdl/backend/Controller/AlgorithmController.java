@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import boofcv.struct.border.BorderType;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
+import pdl.backend.Area;
 import pdl.backend.Algorithm.Algorithm;
 import pdl.backend.Algorithm.Parameters.AreaParameter;
 import pdl.backend.Algorithm.Parameters.DoubleParameter;
@@ -30,7 +31,9 @@ public class AlgorithmController {
 	@Autowired
 	private ObjectMapper mapper;
 
-	public static List<Algorithm> algorithmList() {
+	public final static List<Algorithm> ALGORITHMS = algorithmList();
+
+	private final static List<Algorithm> algorithmList() {
 		final String[] borderTypes = { "SKIP", "ZERO", "NORMALIZED", "REFLECT", "EXTENDED", "WRAP" };
 		final String[] fillingTypes = { "SKIP", "CONVOLUTION", "LEFT", "RIGHT", "TOP", "BOTTOM" };
 		ArrayList<Algorithm> algorithms = new ArrayList<Algorithm>();
@@ -81,15 +84,21 @@ public class AlgorithmController {
 					ImageProcessing.sepiaFilter(input);
 				}));
 		algorithms.add(new Algorithm("Suppression zone", "deleteArea",
-				Arrays.asList(new AreaParameter("area", "Zone"),
+				Arrays.asList(new AreaParameter("Zone", "area"),
 						new SelectParameter("fillingType", "Type de remplissage", fillingTypes)),
 				(Planar<GrayU8> input, List<Object> para) -> {
-					ImageProcessing.deleteArea(input, (int[]) para.get(0), FillingType.valueOf((String) para.get(1)));
+					ImageProcessing.deleteArea(input, (Area) para.get(0),
+							FillingType.valueOf((String) para.get(1)));
 				}));
 		algorithms.add(new Algorithm("Filtre de bruit", "noise",
 				Arrays.asList(new IntegerParameter("intensity", "Intensité", 1, 100, 1)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.gaussianNoiseFilter(input, (int) para.get(0));
+				}));
+		algorithms.add(new Algorithm("Rognage", "crop",
+				Arrays.asList(new AreaParameter("Zone", "area")),
+				(Planar<GrayU8> input, List<Object> para) -> {
+					ImageProcessing.crop(input, (Area) para.get(0));
 				}));
 		return algorithms;
 	}

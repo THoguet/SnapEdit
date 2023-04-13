@@ -62,15 +62,11 @@ const stableDiffRequests = {
 	post: (url: string, body: {}) => stableDiffInstance.post(url, body, { headers: { "Content-Type": "application/json" }, }).then(responseBody),
 };
 
-function areaToString(area: area): string {
-	return `&xmin=${Math.round(area.xmin)}&ymin=${Math.round(area.ymin)}&xmax=${Math.round(area.xmax)}&ymax=${Math.round(area.ymax)}`;
-}
-
 export const api = {
 	getImageList: (): Promise<ImageType[]> => requests.get('images', {}),
 	getAlgorithmList: (): Promise<Filter[]> => requests.get('algorithms', {}),
 	getImage: (id: number): Promise<Blob> => requests.get(`images/${id}`, { responseType: "blob" }),
-	applyAlgorithm: (id: number, filter: Filter, selectedArea: area): Promise<string> => requests.get(`images/${id}?algorithm=${filter.path + getParameters(filter) + areaToString(selectedArea)}`, {}),
+	applyAlgorithm: (id: number, filter: Filter): Promise<string> => requests.get(`images/${id}?algorithm=${filter.path + getParameters(filter)}`, {}),
 	algorithmsProgress: (): Promise<algorithmProgressInterface> => requests.get('images/progress', {}),
 	createImage: (form: FormData): Promise<HttpStatusCode> => requests.post('images', form),
 	deleteImage: (id: number): Promise<void> => requests.delete(`images/${id}`),

@@ -4,7 +4,7 @@ import HomeSelect from '@/components/HomeSelect.vue'
 import HomeEditor from '@/components/HomeEditor.vue'
 import { defineComponent } from 'vue'
 import { ImageType } from '@/image'
-import { Filter } from '@/filter'
+import { Area, Filter, FilterType } from '@/filter'
 import { api } from '@/http-api'
 </script>
 <script lang="ts">
@@ -32,7 +32,7 @@ export default defineComponent({
 			imageSelectedId: -1,
 			editor: false,
 			newId: -1,
-			selectedArea: { xmin: 0, ymin: 0, xmax: 0, ymax: 0 },
+			selectedArea: new Area(0, 0, 0, 0),
 			processed: false,
 			progress: 0
 		}
@@ -52,7 +52,7 @@ export default defineComponent({
 			deep: true
 		},
 		editor() {
-			this.selectedArea = { xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
+			this.selectedArea = new Area(0, 0, 0, 0);
 		}
 	},
 	methods: {
@@ -69,17 +69,28 @@ export default defineComponent({
 				this.imageSelectedId = this.images.keys().next().value;
 		},
 		async applyFilter(filter: Filter) {
+			console.log("applyfilter")
 			if (filter === undefined || filter === null) {
 				return;
 			}
-			console.log(filter);
-			const newImage = api.applyAlgorithm(this.imageSelectedId, filter, this.selectedArea);
+			// if filter contain AreaParameter, we need to set the area
+			for (const arg of filter.parameters) {
+				console.log("applyfilter")
+				if (arg.type === FilterType.area) {
+					arg.value = this.selectedArea;
+				}
+			}
+			const newImage = api.applyAlgorithm(this.imageSelectedId, filter);
 			newImage.then((id) => {
 				this.processed = !this.processed;
 				this.newId = parseInt(id);
 				this.$emit("updateImageList");
 				clearInterval(timer);
 				this.progress = 0;
+			});
+			newImage.catch((err) => {
+				console.log(err);
+				clearInterval(timer);
 			});
 			// set a timer to get the progress of the filter
 			const timer = setInterval(async () => {

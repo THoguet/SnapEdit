@@ -24,7 +24,7 @@ export default defineComponent({
 		progress: {
 			type: Number,
 			required: true,
-		}
+		},
 	},
 	emits: {
 		deleteImage() {
@@ -53,8 +53,8 @@ export default defineComponent({
 				return;
 			const filter = this.filters[this.filterSelectId];
 			for (const arg of filter.parameters) {
-				if (arg.value === undefined) {
-					this.error = "";
+				if (arg.type !== FilterType.area && arg.value === undefined) {
+					this.error = "Un paramètre n'a pas été renseigné";
 					return;
 				}
 			}
@@ -146,6 +146,9 @@ export default defineComponent({
 			<div v-else-if="parameter.type === FilterType.color">
 				<label>{{ parameter.name }}: </label>
 				<input type="color" v-model="parameter.value" />
+			</div>
+			<div v-else-if="parameter.type === FilterType.area">
+				<label> Veuillez selectioner une {{ parameter.name }}</label>
 			</div>
 		</div>
 		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"
