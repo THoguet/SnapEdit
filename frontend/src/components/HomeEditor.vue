@@ -25,6 +25,10 @@ export default defineComponent({
 			type: Number,
 			required: true,
 		},
+		serverError: {
+			type: Boolean,
+			required: true,
+		},
 	},
 	emits: {
 		deleteImage() {
@@ -97,6 +101,9 @@ export default defineComponent({
 			return "Appliquer le filtre";
 		},
 		styledProgress() {
+			if (this.error != '') {
+				return "red";
+			}
 			return "linear-gradient(to right, #00ff00 " + this.progress + "%, var(--button-color) " + this.progress + "%)";
 		}
 	},
@@ -111,6 +118,10 @@ export default defineComponent({
 			deep: true
 		},
 		processed() {
+			this.sent = false;
+		},
+		serverError() {
+			this.error = "Erreur serveur";
 			this.sent = false;
 		}
 	},
@@ -152,8 +163,7 @@ export default defineComponent({
 			</div>
 		</div>
 		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"
-			@mouseleave="error = areInputValid()" class="button" :class="{ errorClass: error !== '' }"
-			@click="applyFilter()">{{ titleApply() }}</button>
+			@mouseleave="error = areInputValid()" class="button" @click="applyFilter()">{{ titleApply() }}</button>
 		<button v-if="imageFiltered !== -1" class="button" @click="deleteFilter()">Supprimer les filtres</button>
 	</div>
 </template>

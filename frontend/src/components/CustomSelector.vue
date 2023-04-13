@@ -44,7 +44,6 @@ export default defineComponent({
 
 <style scoped>
 .custom-select {
-	width: 100%;
 	text-align: left;
 	outline: none;
 	height: 47px;

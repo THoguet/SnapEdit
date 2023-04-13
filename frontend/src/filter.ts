@@ -69,6 +69,17 @@ export class Area {
 	toString(): string {
 		return Math.round(this.xMin) + ";" + Math.round(this.yMin) + ";" + Math.round(this.xMax) + ";" + Math.round(this.yMax)
 	}
+
+	clear(): void {
+		this.xMin = 0
+		this.xMax = 0
+		this.yMin = 0
+		this.yMax = 0
+	}
+
+	clone(): Area {
+		return new Area(this.xMin, this.xMax, this.yMin, this.yMax)
+	}
 }
 
 export class AreaParameters extends Parameters {

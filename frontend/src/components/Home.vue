@@ -34,7 +34,8 @@ export default defineComponent({
 			newId: -1,
 			selectedArea: new Area(0, 0, 0, 0),
 			processed: false,
-			progress: 0
+			progress: 0,
+			serverError: false
 		}
 	},
 	created() {
@@ -69,15 +70,14 @@ export default defineComponent({
 				this.imageSelectedId = this.images.keys().next().value;
 		},
 		async applyFilter(filter: Filter) {
-			console.log("applyfilter")
 			if (filter === undefined || filter === null) {
 				return;
 			}
 			// if filter contain AreaParameter, we need to set the area
 			for (const arg of filter.parameters) {
-				console.log("applyfilter")
 				if (arg.type === FilterType.area) {
-					arg.value = this.selectedArea;
+					arg.value = this.selectedArea.clone();
+					this.selectedArea.clear();
 				}
 			}
 			const newImage = api.applyAlgorithm(this.imageSelectedId, filter);
@@ -91,6 +91,7 @@ export default defineComponent({
 			newImage.catch((err) => {
 				console.log(err);
 				clearInterval(timer);
+				this.serverError = !this.serverError;
 			});
 			// set a timer to get the progress of the filter
 			const timer = setInterval(async () => {
@@ -126,8 +127,8 @@ export default defineComponent({
 			@updateImageSelectedId="id => updateImageSelectedId(id)" />
 		<HomeEditor v-else @apply-filter="(filter) => applyFilter(filter)" :filters="filters"
 			:image-filtered="isImageFiltered(imageSelectedId)" @delete-image="$emit('delete', imageSelectedId)"
-			@update-image-selected-id="(newid) => updateImageSelectedId(newid)" :processed="processed"
-			:progress="progress" />
+			@update-image-selected-id="(newid) => updateImageSelectedId(newid)" :processed="processed" :progress="progress"
+			:server-error="serverError" />
 		<Image class="home" v-if="imageSelectedId !== undefined && imageSelectedId !== -1" :id="imageSelectedId"
 			:images="images" :redirect="editor ? 'disabled' : ''" :selected-area="selectedArea">
 		</Image>
