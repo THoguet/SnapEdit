@@ -140,8 +140,8 @@ export default defineComponent({
 		<label>Sélectionner un filtre: </label>
 		<CustomSelector :map="convertFilters()" :selected="filterSelectId" @update-selected="filterSelectId = $event" />
 		<!-- Filter parameters -->
-		<div v-if="filters.length !== 0" v-for="parameter in filters[filterSelectId].parameters" class="rangeInput">
-			<div v-if="parameter.type === FilterType.range">
+		<div v-if="filters.length !== 0" v-for="parameter in filters[filterSelectId].parameters">
+			<div v-if="parameter.type === FilterType.range" class="rangeInput">
 				<div class="labelInput">
 					<label>{{ parameter.name }}: </label>
 					<input type="number" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
@@ -202,6 +202,7 @@ label {
 	justify-content: center;
 	align-items: center;
 	gap: 10px;
+	flex-wrap: wrap;
 }
 
 .errorClass {
