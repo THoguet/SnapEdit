@@ -1,5 +1,5 @@
 \documentclass[a4paper,12pt]{article}
-\usepackage[french]{babel}
+\usepackage[frenchb]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc} 
 \usepackage{lmodern}
@@ -68,7 +68,7 @@ Ce document présente les extensions pour le projet PDL.
 
 \subsection{BackEnd}
 
-\besoin{backend:listAlgo}
+\besoin{backend: listAlgo}
 {Transférer la liste des algorithmes implementés}
 {
   La liste des algorithmes disponibles sur le serveur doit être envoyée par le serveur lorsqu'il reçoit une requête \verb!GET! à l'adresse \verb!/algorithms!.
@@ -80,10 +80,10 @@ Ce document présente les extensions pour le projet PDL.
   \item[Path:] Le point d'accès de l'algorithme \verb!/images?algorithm=<path>! (type \verb!string!)
   \item[Parameters] Une liste de paramètres (type \verb!List<Parameters>!) ci dessous spécification Parameters
   \begin{description}
-    \item[type:] Le type de l'input ("select", "range") (type \verb!string!)
-    \item[Name:] Le point d'accès du paramètre \verb!/images?algorithm=*algo*\&<name>=*value*! (type \verb!string!)
-    \item[displayName:] Le nom d'affichage du paramètre (type \verb!string!)
-    \item[options:] Le nom et la valeur associés à l'option de l'input (type \verb!string!)
+    \item[Name:] Le nom d'affichage du paramètre (type \verb!string!)
+    \item[Path:] Le point d'accès du paramètre \verb!/images?algorithm=*algo*\&<name>=*?*! (type \verb!string!)
+    \item[type:] Le type de l'input ("select", "range", "boolean", "area", "color") (type \verb!string!)
+    \item[Parameters:] Une liste de paramètres nécessaires pour l'algorithme. Dépend du type de paramètre. Les paramètres de type "range" ont besoin des paramètres min (type \verb!int!) , max (type \verb!int!) et step(type \verb!int!). Les paramètres de type "select" ont besoin d'un paramètre option (type \verb![string]!). Les paramètres de type "area" ont besoin d'un paramètre "cropImage" (type \verb!boolean!). Les autres paramètres n'ont pas besoin de paramètres supplémentaires.
   \end{description}
   \end{description}
 }
@@ -140,12 +140,13 @@ Ce document présente les extensions pour le projet PDL.
 \besoin{backend:selectionColor}
 {Appliquer un filtre de sélection de couleur}
 {
-  L'algorithme prend un intervalle de couleurs, il est possible de choisir si les pixels dont la couleur appartient à l'intervalle sont changés (noir et blanc ou autre couleur) ou si ils restent inchangés. L'algorithme prend en paramètres :
+  L'algorithme prend un intervalle de couleurs, il est possible de choisir si les pixels dont la couleur appartient à l'intervalle sont changés (noir et blanc ou autre couleur) ou si ils restent inchangés. L'algorithme prend en paramètres : 
   \begin{description}
   \item[img: ] L'image d'origine
-  \item[hMin: ] la valeur de H minimum sur HSV
-  \item[hMax:] la valeur de H maximum sur HSV  
-  \item[newH:] IL FAUT CHANGER CA PARCE QU'ON PEUT PAS CHANGER UNE RANGE COULEUR EN UNE SEULE COULEUR CA FERAIT MOCHE MAIS PLUTOT CHOISIR DES RANGE DISPONIBLES PAR EXEMPLE (N\&B, ROUGE, ORANGE, JAUNE, VERT, BLEU, VIOLET, etc...) 
+  \item[hexOldColor: ] valeur hexadécimale de la couleur choisie
+  \item[range: ] définit la gamme de couleur choisie, elle peut aller de 0 à 179
+  \item[newColor: ] la couleur qui va être appliquée (ROUGE, JAUNE, VERT, BLEU, CYAN, MAGENTA) 
+  \item[keep: ] booléen qui détermine si la range de couleur choisie est celle qui est changée, ou celle qui est modifiée.
   \end{description}
 }
 {}
@@ -156,12 +157,11 @@ Ce document présente les extensions pour le projet PDL.
 {
   Ajout de quelques filtres basiques dont voici la liste: 
   \begin{description}
-  \item[sharpness :] Filtre de netteté (sharpness filter) - pour augmenter la netteté des détails dans l'image.
   \item[saturation :] Filtre de saturation (saturation filter) - pour augmenter ou diminuer l'intensité des couleurs dans l'image.
   \item[vignette :] Filtre de vignette (vignette filter) - pour assombrir les bords de l'image et attirer l'attention sur le centre.
   \item[grain :] Filtre de grain (grain filter) - pour ajouter un effet de bruit visuel pour donner à l'image une apparence plus granuleuse.
   \item[sepia :] Filtre de sépia (sepia filter) - pour donner à l'image une teinte brunâtre vintage.
-  \item[negative :] Filtre negatif (negative filter) - pour inverser les couleurs d'une image.
+  \item[negative :] Filtre négatif (negative filter) - pour inverser les couleurs d'une image.
   \end{description} 
 }
 {}
@@ -183,8 +183,8 @@ Ce document présente les extensions pour le projet PDL.
   \item[convolution :] la partie supprimée est remplie avec la convolution de l'image d'origine.
   \item[left :] la partie supprimée est remplie de façon similaire à ce qu'il y a à sa gauche.
   \item[right :] la partie supprimée est remplie de façon similaire à ce qu'il y a à sa droite.
-  \item[top :] la partie supprimée est remplie de façon similaire à ce qu'il y a en haut.
-  \item[bottom :] la partie supprimée est remplie de façon similaire à ce qu'il y a en bas.  
+  \item[top :] la partie supprimée est remplie de façon similaire à ce qu'il y a au dessus.
+  \item[bottom :] la partie supprimée est remplie de façon similaire à ce qu'il y a en dessous.  
   \end{description}
   \end{description}
 }
@@ -197,8 +197,8 @@ Ce document présente les extensions pour le projet PDL.
 \besoin{FrontEnd:ShowAlgo}
 {Afficher les algorithmes fournis par le serveur}
 {
-  Le front doit pouvoir afficher les algorithmes donné par le backend (/algorithms)\verb!/images!.
-  voir \refBesoin{backend:listAlgo}
+  Le front doit pouvoir afficher les algorithmes donné par le backend (/algorithms).
+  voir Besoin 1.
 }
 {}
 {}
@@ -212,10 +212,10 @@ Ce document présente les extensions pour le projet PDL.
   Les champs doivent etre les suivants :
   \begin{description}
   \item[Prompt:] Une zone de texte pour le prompt de l'image
-  \item[Netative prompt:] Une zone de texte pour le prompt negatif de l'image
-  \item[Hauteur:] Un selecteur pour la hauteur de l'image
-  \item[Largeur:] Un selecteur pour la largeur de l'image
-  \item[Steps:] Le nombre de steps lors de la generation
+  \item[Negative prompt:] Une zone de texte pour le prompt négatif de l'image
+  \item[Hauteur:] Un sélecteur pour la hauteur de l'image
+  \item[Largeur:] Un sélecteur pour la largeur de l'image
+  \item[Steps:] Le nombre de steps lors de la génération
   \item[CFG scale:] Le niveau de liberté de l'IA
   \end{description}
 }
@@ -226,7 +226,7 @@ Ce document présente les extensions pour le projet PDL.
 \besoin{FrontEnd:seeStatus}
 {Voir l'avancement du traitement de l'image / d'un upload / de la generation d'une image}
 {
-  Avoir un affichage claire de la progression d'un traitement d'image / de la generation d'une image ou d'un upload
+  Avoir un affichage clair de la progression d'un traitement d'image / de la génération d'une image ou d'un upload
 }
 {}
 {}
