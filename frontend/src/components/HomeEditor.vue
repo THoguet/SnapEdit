@@ -165,9 +165,9 @@ export default defineComponent({
 				<input type="color" v-model="parameter.value" />
 			</div>
 			<div v-else-if="parameter.type === FilterType.area">
-				<label v-if="(parameter as AreaParameters).cropImage"> Vous pouvez selectionner une
+				<label v-if="(parameter as AreaParameters).cropImage"> Vous pouvez sélectionner une
 					{{ parameter.name }}</label>
-				<label v-else> Veuillez selectioner une {{ parameter.name }}</label>
+				<label v-else> Veuillez sélectioner une {{ parameter.name }}</label>
 			</div>
 		</div>
 		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"
