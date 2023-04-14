@@ -70,11 +70,8 @@ export default defineComponent({
 			this.$emit("applyFilter", filter);
 		},
 		areInputValid() {
-			console.log(this.filters[this.filterSelectId])
 			for (let p of this.filters[this.filterSelectId].parameters) {
-				console.log(p.path);
 				const input = document.getElementById(p.path) as HTMLInputElement;
-				console.log(input);
 				if (input !== null)
 					if (!input.checkValidity())
 						return "Paramètre(s) du filtre invalide(s)";
