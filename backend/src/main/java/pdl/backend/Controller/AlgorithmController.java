@@ -46,6 +46,11 @@ public class AlgorithmController {
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.changeLuminosity(input, (int) para.get(0));
 				}));
+		algorithms.add(new Algorithm("Niveaux de gris", "convertToGray",
+				Arrays.asList(new AreaParameter("Zone", "area")),
+				(Planar<GrayU8> input, List<Object> para) -> {
+					ImageProcessing.convertColorToGray(input);
+				}));
 
 		algorithms.add(new Algorithm("Changement de teinte", "colorFilter",
 				Arrays.asList(new IntegerParameter("Teinte", "hue", 0, 359, 1),
