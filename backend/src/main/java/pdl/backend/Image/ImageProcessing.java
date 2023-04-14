@@ -884,12 +884,12 @@ public final class ImageProcessing {
 	 *                 modifie tout le reste ou modifie uniquement la couleur
 	 *                 choisie
 	 */
-	public static void changeColoration(Planar<GrayU8> input, String hexOldColor, int range,
-			String newColor, boolean keep) {
+	public static void changeColoration(Planar<GrayU8> input, String hexOldColor, int range, String newColor,
+			boolean keep) {
 
-		int r = Integer.valueOf(hexOldColor.substring(1, 3), 16);
-		int g = Integer.valueOf(hexOldColor.substring(3, 5), 16);
-		int b = Integer.valueOf(hexOldColor.substring(5, 7), 16);
+		int r = Integer.valueOf(hexOldColor.substring(0, 2), 16);
+		int g = Integer.valueOf(hexOldColor.substring(2, 4), 16);
+		int b = Integer.valueOf(hexOldColor.substring(4, 6), 16);
 
 		float hsvTMP[] = new float[3];
 		rgbToHsv(r, g, b, hsvTMP);

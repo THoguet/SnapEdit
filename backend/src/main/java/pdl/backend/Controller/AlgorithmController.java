@@ -13,6 +13,8 @@ import boofcv.struct.image.Planar;
 import pdl.backend.Area;
 import pdl.backend.Algorithm.Algorithm;
 import pdl.backend.Algorithm.Parameters.AreaParameter;
+import pdl.backend.Algorithm.Parameters.BooleanParameter;
+import pdl.backend.Algorithm.Parameters.ColorParameter;
 import pdl.backend.Algorithm.Parameters.DoubleParameter;
 import pdl.backend.Algorithm.Parameters.IntegerParameter;
 import pdl.backend.Algorithm.Parameters.SelectParameter;
@@ -38,27 +40,27 @@ public class AlgorithmController {
 		final String[] fillingTypes = { "SKIP", "CONVOLUTION", "LEFT", "RIGHT", "TOP", "BOTTOM" };
 		ArrayList<Algorithm> algorithms = new ArrayList<Algorithm>();
 		algorithms.add(new Algorithm("Changement de luminosité", "changeLuminosity",
-				Arrays.asList(new IntegerParameter("delta", "delta", -255, 255, 1)),
+				Arrays.asList(new IntegerParameter("Delta", "delta", -255, 255, 1)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.changeLuminosity(input, (int) para.get(0));
 				}));
 		algorithms.add(new Algorithm("Changement de teinte", "colorFilter",
-				Arrays.asList(new IntegerParameter("hue", "Teinte", 0, 359, 1)),
+				Arrays.asList(new IntegerParameter("Teinte", "hue", 0, 359, 1)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.colorFilter(input, (int) para.get(0));
 				}));
 
 		algorithms.add(new Algorithm("Filtre Moyenneur", "meanFilter", Arrays.asList(
-				new IntegerParameter("size", "Taille du filtre", 1, 21, 2),
+				new IntegerParameter("Taille du filtre", "size", 1, 21, 2),
 				new SelectParameter("borderType", "Type de bordure", borderTypes)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.meanFilter(input, (int) para.get(0), BorderType.valueOf((String) para.get(1)));
 				}));
 
 		algorithms.add(new Algorithm("Filtre Gaussien", "gaussienFilter", Arrays.asList(
-				new IntegerParameter("size", "Taille du filtre", 1, 21, 2),
-				new DoubleParameter("sigma", "Sigma", 0.1, 2, 0.1),
-				new SelectParameter("borderType", "Type de bordure", borderTypes)),
+				new IntegerParameter("Taille du filtre", "size", 1, 21, 2),
+				new DoubleParameter("Sigma", "sigma", 0.1, 2, 0.1),
+				new SelectParameter("Type de bordure", "borderType", borderTypes)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.gaussienFilter(input, (int) para.get(0), (double) para.get(1),
 							BorderType.valueOf((String) para.get(2)));
@@ -86,14 +88,14 @@ public class AlgorithmController {
 
 		algorithms.add(new Algorithm("Suppression zone", "deleteArea",
 				Arrays.asList(new AreaParameter("Zone", "area"),
-						new SelectParameter("fillingType", "Type de remplissage", fillingTypes)),
+						new SelectParameter("Type de remplissage", "fillingType", fillingTypes)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.deleteArea(input, (Area) para.get(0),
 							FillingType.valueOf((String) para.get(1)));
 				}));
 
 		algorithms.add(new Algorithm("Filtre de bruit", "noise",
-				Arrays.asList(new IntegerParameter("intensity", "Intensité", 1, 100, 1)),
+				Arrays.asList(new IntegerParameter("Intensité", "intensity", 1, 100, 1)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.gaussianNoiseFilter(input, (int) para.get(0));
 				}));
@@ -102,6 +104,16 @@ public class AlgorithmController {
 				Arrays.asList(new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.crop(input, (Area) para.get(0));
+				}));
+
+		algorithms.add(new Algorithm("Changement de coloration", "changeColoration",
+				Arrays.asList(new ColorParameter("Couleur à changer", "colorToChange"),
+						new IntegerParameter("Tolerance", "tolerance", 0, 255, 1),
+						new ColorParameter("Couleur de remplacement", "colorToReplace"),
+						new BooleanParameter("Garder la couleur ?", "keep")),
+				(Planar<GrayU8> input, List<Object> para) -> {
+					ImageProcessing.changeColoration(input, (String) para.get(0), (int) para.get(1),
+							(String) para.get(2), (boolean) para.get(3));
 				}));
 
 		return algorithms;

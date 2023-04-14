@@ -41,7 +41,6 @@ export default defineComponent({
 	created() {
 		this.updateImageList();
 		api.getAlgorithmList().then((filters) => {
-			console.log(filters)
 			this.filters = filters;
 			// fill value attribute
 			for (const filter of this.filters) {

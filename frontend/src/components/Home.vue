@@ -89,7 +89,7 @@ export default defineComponent({
 				this.progress = 0;
 			});
 			newImage.catch((err) => {
-				console.log(err);
+				console.error(err);
 				clearInterval(timer);
 				this.serverError = !this.serverError;
 			});

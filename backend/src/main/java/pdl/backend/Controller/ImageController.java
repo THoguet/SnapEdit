@@ -200,13 +200,13 @@ public class ImageController {
 		for (Algorithm a : algos) {
 			if (a.getPath().equals(algo)) {
 				for (Parameter p : a.getParameters()) {
-					if (!parameters.containsKey(p.getName())) {
-						return JSONError("Parameter '" + p.getName() + "' is missing", HttpStatus.BAD_REQUEST);
+					if (!parameters.containsKey(p.getPath())) {
+						return JSONError("Parameter '" + p.getPath() + "' is missing", HttpStatus.BAD_REQUEST);
 					}
 					try {
-						p.setValue(parameters.get(p.getName()));
+						p.setValue(parameters.get(p.getPath()));
 					} catch (Exception e) {
-						return JSONError("Parameter '" + p.getName() + "' is invalid", HttpStatus.BAD_REQUEST);
+						return JSONError("Parameter '" + p.getPath() + "' is invalid", HttpStatus.BAD_REQUEST);
 					}
 				}
 				try {

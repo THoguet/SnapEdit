@@ -105,7 +105,6 @@ export default defineComponent({
 				const formData = new FormData();
 				formData.append("file", file);
 				api.createImage(formData).then((data) => {
-					console.log(data);
 					this.$emit('updateImageList');
 				});
 			}

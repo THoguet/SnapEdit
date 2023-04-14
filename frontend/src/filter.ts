@@ -9,13 +9,13 @@ export enum FilterType {
 
 export abstract class Parameters {
 	name: string
-	displayName: string
+	path: string
 	type: FilterType
 	value: any
 
-	constructor(name: string, displayName: string, type: FilterType) {
+	constructor(name: string, path: string, type: FilterType) {
 		this.name = name
-		this.displayName = displayName
+		this.path = path
 		this.type = type
 	}
 
@@ -23,7 +23,7 @@ export abstract class Parameters {
 
 export class ColorParameters extends Parameters {
 	value: string
-	constructor(name: string, displayName: string, value: string) {
+	constructor(name: string, displayName: string, value: string = "#000000") {
 		super(name, displayName, FilterType.color)
 		this.value = value;
 	}
@@ -50,6 +50,14 @@ export class SelectParameters extends Parameters {
 		super(name, displayName, FilterType.select)
 		this.value = value;
 		this.options = options
+	}
+}
+
+export class BooleanParameters extends Parameters {
+	value: boolean
+	constructor(name: string, displayName: string, value: boolean = false) {
+		super(name, displayName, FilterType.boolean)
+		this.value = value;
 	}
 }
 
@@ -104,22 +112,25 @@ export class Filter {
 }
 
 export function getParameters(f: Filter): string {
+	console.log(f);
 	return '&' + f.parameters.map((param) => {
 		switch (param.type) {
 			case FilterType.range:
 				const paramCastRange = param as RangeParameters
-				return paramCastRange.name + "=" + paramCastRange.value
+				return paramCastRange.path + "=" + paramCastRange.value
 			case FilterType.select:
 				const paramCastSelect = param as SelectParameters
-				return paramCastSelect.name + "=" + paramCastSelect.value
+				return paramCastSelect.path + "=" + paramCastSelect.value
+			case FilterType.area:
+				const paramCastArea = param as AreaParameters
+				return paramCastArea.path + "=" + paramCastArea.value.toString()
+			case FilterType.boolean:
+				const paramCastBoolean = param as BooleanParameters
+				return paramCastBoolean.path + "=" + paramCastBoolean.value
 			case FilterType.color:
 				const paramCastColor = param as ColorParameters
-				return paramCastColor.name + "=" + paramCastColor.value
-			case FilterType.area:
-				console.log("area")
-				const paramCastArea = param as AreaParameters
-				return paramCastArea.name + "=" + paramCastArea.value.toString()
+				// remove first char of value
+				return paramCastColor.path + "=" + paramCastColor.value.substring(1)
 		}
-	}
-	).join("&")
+	}).join("&")
 }

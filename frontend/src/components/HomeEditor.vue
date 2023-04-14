@@ -152,7 +152,7 @@ export default defineComponent({
 			</div>
 			<div v-else-if="parameter.type === FilterType.boolean">
 				<label>{{ parameter.name }}: </label>
-				<input type="checkbox" v-model="parameter.value" />
+				<input type="checkbox" v-model.boolean="parameter.value" />
 			</div>
 			<div v-else-if="parameter.type === FilterType.color">
 				<label>{{ parameter.name }}: </label>
