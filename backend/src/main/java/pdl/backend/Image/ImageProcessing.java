@@ -909,22 +909,22 @@ public final class ImageProcessing {
 
 		int deltaColor = 0;
 		switch (newColor) {
-			case "red":
+			case "RED":
 				deltaColor = 0;
 				break;
-			case "yellow":
+			case "YELLOW":
 				deltaColor = 60;
 				break;
-			case "green":
+			case "GREEN":
 				deltaColor = 120;
 				break;
-			case "cyan":
+			case "CYAN":
 				deltaColor = 180;
 				break;
-			case "blue":
+			case "BLUE":
 				deltaColor = 240;
 				break;
-			case "magenta":
+			case "MAGENTA":
 				deltaColor = 300;
 				break;
 			default:
@@ -967,7 +967,7 @@ public final class ImageProcessing {
 				if (test1 || test2) {
 					continue;
 				} else {
-					if (newColor == "grey") {
+					if (newColor == "GREY") {
 						int gl = 0;
 						double coeff[] = { 0.3, 0.59, 0.11 };
 

@@ -112,7 +112,6 @@ export class Filter {
 }
 
 export function getParameters(f: Filter): string {
-	console.log(f);
 	return '&' + f.parameters.map((param) => {
 		switch (param.type) {
 			case FilterType.range:

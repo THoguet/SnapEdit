@@ -2,8 +2,6 @@ import axios, { AxiosResponse, AxiosError, HttpStatusCode } from 'axios';
 import { ImageType } from '@/image';
 import { Filter, getParameters } from './filter';
 
-type area = { xmin: number, ymin: number, xmax: number, ymax: number }
-
 interface stateInterface {
 	skipped: boolean;
 	interrupted: boolean;

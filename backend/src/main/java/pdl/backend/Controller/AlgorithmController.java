@@ -38,6 +38,7 @@ public class AlgorithmController {
 	private final static List<Algorithm> algorithmList() {
 		final String[] borderTypes = { "SKIP", "ZERO", "NORMALIZED", "REFLECT", "EXTENDED", "WRAP" };
 		final String[] fillingTypes = { "SKIP", "CONVOLUTION", "LEFT", "RIGHT", "TOP", "BOTTOM" };
+		final String[] newColors = { "RED", "GREEN", "BLUE", "YELLOW", "CYAN", "MAGENTA", "GREY" };
 		ArrayList<Algorithm> algorithms = new ArrayList<Algorithm>();
 		algorithms.add(new Algorithm("Changement de luminosité", "changeLuminosity",
 				Arrays.asList(new IntegerParameter("Delta", "delta", -255, 255, 1)),
@@ -109,7 +110,7 @@ public class AlgorithmController {
 		algorithms.add(new Algorithm("Changement de coloration", "changeColoration",
 				Arrays.asList(new ColorParameter("Couleur à changer", "colorToChange"),
 						new IntegerParameter("Tolerance", "tolerance", 0, 255, 1),
-						new ColorParameter("Couleur de remplacement", "colorToReplace"),
+						new SelectParameter("Couleur de remplacement", "colorToReplace", newColors),
 						new BooleanParameter("Garder la couleur ?", "keep")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.changeColoration(input, (String) para.get(0), (int) para.get(1),

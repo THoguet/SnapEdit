@@ -57,6 +57,10 @@ export default defineComponent({
 				return;
 			const filter = this.filters[this.filterSelectId];
 			for (const arg of filter.parameters) {
+				if (arg.type === FilterType.boolean && arg.value === undefined)
+					arg.value = false;
+				if (arg.type === FilterType.color && arg.value === undefined)
+					arg.value = "#000000";
 				if (arg.type !== FilterType.area && arg.value === undefined) {
 					this.error = "Un paramètre n'a pas été renseigné";
 					return;
@@ -66,12 +70,14 @@ export default defineComponent({
 			this.$emit("applyFilter", filter);
 		},
 		areInputValid() {
-			for (const p of this.filters[this.filterSelectId].parameters) {
-				const input = document.getElementById(p.name) as HTMLInputElement;
-				if (input === null)
-					return "";
-				if (!input.checkValidity())
-					return "Paramètre(s) du filtre invalide(s)";
+			console.log(this.filters[this.filterSelectId])
+			for (let p of this.filters[this.filterSelectId].parameters) {
+				console.log(p.path);
+				const input = document.getElementById(p.path) as HTMLInputElement;
+				console.log(input);
+				if (input !== null)
+					if (!input.checkValidity())
+						return "Paramètre(s) du filtre invalide(s)";
 			}
 			return "";
 		},
@@ -139,7 +145,7 @@ export default defineComponent({
 				<div class="labelInput">
 					<label>{{ parameter.name }}: </label>
 					<input type="number" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
-						:step="(parameter as RangeParameters).step" v-model.number="parameter.value" :id="parameter.name" />
+						:step="(parameter as RangeParameters).step" v-model.number="parameter.value" :id="parameter.path" />
 				</div>
 				<input type="range" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
 					:step="(parameter as RangeParameters).step" v-model.number="(parameter as RangeParameters).value" />
@@ -163,7 +169,8 @@ export default defineComponent({
 			</div>
 		</div>
 		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"
-			@mouseleave="error = areInputValid()" class="button" @click="applyFilter()">{{ titleApply() }}</button>
+			@mouseleave="error = areInputValid()" class="button" @click="applyFilter()" :disabled="sent">
+			{{ titleApply() }}</button>
 		<button v-if="imageFiltered !== -1" class="button" @click="deleteFilter()">Supprimer les filtres</button>
 	</div>
 </template>
