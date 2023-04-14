@@ -724,7 +724,7 @@ public final class ImageProcessing {
 				yEnd--;
 			}
 		}
-		for (int i = xMin; i <= xMax; i++) {
+		BoofConcurrency.loopFor(xMin, xMax + 1, i -> {
 			for (int j = yMin; j <= yMax; j++) {
 				if (filling == FillingType.SKIP) {
 					setRGBValue(input, i, j, new int[] { 0, 0, 0 });
@@ -794,7 +794,9 @@ public final class ImageProcessing {
 					setRGBValue(input, i, j, getRGBValue(input, i, j));
 				}
 			}
-		}
+			counter.incrementAndGet();
+		});
+		counter.set(-1);
 	}
 
 	/**
