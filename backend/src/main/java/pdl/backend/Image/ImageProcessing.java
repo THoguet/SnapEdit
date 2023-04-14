@@ -1016,4 +1016,24 @@ public final class ImageProcessing {
 			}
 		}
 	}
+
+	public static void vignette(Planar<GrayU8> input, double power) {
+		int centerX = input.width / 2;
+		int centerY = input.height / 2;
+		double maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+
+		for (int y = 0; y < input.height; y++) {
+			for (int x = 0; x < input.width; x++) {
+				double dist = Math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+				double vignette = 1.0 - Math.pow(dist / maxDist, power);
+				for (int band = 0; band < 3; band++) {
+					int colorLevel = (int) (input.getBand(band).get(x, y) * vignette);
+					if (colorLevel > 255)
+						colorLevel = 255;
+					input.getBand(band).set(x, y, colorLevel);
+				}
+			}
+		}
+	}
+
 }
