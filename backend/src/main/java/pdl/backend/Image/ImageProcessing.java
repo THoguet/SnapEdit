@@ -926,15 +926,12 @@ public final class ImageProcessing {
 
 		float tmpMin = ((hue - range) + 360) % 360;
 		float tmpMax = (hue + range) % 360;
-		System.out.println("aimed hue : " + hue);
-		System.out.println("tmpMin = " + tmpMin + "; tmpMax = " + tmpMax + "; keep = " + keep);
 		if (tmpMin > tmpMax) {
 			float tmp = tmpMin;
 			tmpMin = tmpMax;
 			tmpMax = tmp;
 			keep = !keep;
 		}
-		System.out.println("tmpMin = " + tmpMin + "; tmpMax = " + tmpMax + "; keep = " + keep);
 
 		int deltaColor = 0;
 		switch (newColor) {
