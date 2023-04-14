@@ -10,6 +10,10 @@ import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.Planar;
 import pdl.backend.Algorithm.Parameters.Parameter;
 import pdl.backend.Algorithm.Parameters.ParameterNullPointerException;
+import pdl.backend.Area;
+import pdl.backend.Algorithm.Parameters.AreaParameter;
+
+import pdl.backend.Image.ImageProcessing;
 
 public class Algorithm {
 	private final String name;
@@ -26,12 +30,35 @@ public class Algorithm {
 
 	public void apply(Planar<GrayU8> image) {
 		List<Object> para = this.parameters.stream().map(p -> p.getValue()).toList();
+		boolean cropImage = false;
 		for (Object p : para) {
 			if (p == null) {
 				throw new ParameterNullPointerException("Parameter not set");
 			}
 		}
-		this.function.apply(image, para);
+		for (var p : this.parameters) {
+			if (p instanceof AreaParameter) {
+				if (((AreaParameter) p).isCropImage()) {
+					cropImage = true;
+					break;
+				}
+			}
+		}
+		if (cropImage) {
+			var aPara = (AreaParameter) this.parameters.stream().filter(p -> p instanceof AreaParameter).findFirst()
+					.get();
+			Area area = (Area) aPara.getValue();
+			if (area.isEmpty()) {
+				this.function.apply(image, para);
+			} else {
+				var tmp = image.clone();
+				ImageProcessing.crop(tmp, area);
+				this.function.apply(tmp, para);
+				ImageProcessing.paste(tmp, image, area);
+			}
+		} else {
+			this.function.apply(image, para);
+		}
 	}
 
 	public String getName() {

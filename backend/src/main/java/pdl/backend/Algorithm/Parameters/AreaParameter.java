@@ -8,10 +8,22 @@ import pdl.backend.Area;
 public class AreaParameter extends Parameter {
 
 	private final Area area;
+	private final boolean cropImage;
 
 	public AreaParameter(String name, String path) {
 		super(name, path, "area");
 		area = new Area(0, 0, 0, 0);
+		this.cropImage = true;
+	}
+
+	public AreaParameter(String name, String path, boolean cropImage) {
+		super(name, path, "area");
+		area = new Area(0, 0, 0, 0);
+		this.cropImage = cropImage;
+	}
+
+	public boolean isCropImage() {
+		return this.cropImage;
 	}
 
 	@Override

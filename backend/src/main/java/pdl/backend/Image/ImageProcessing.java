@@ -857,6 +857,33 @@ public final class ImageProcessing {
 	}
 
 	/**
+	 * colle l'image input sur l'image output à partir de area
+	 * 
+	 * @param input  l'image à coller
+	 * @param output l'image sur laquelle on colle
+	 * @param area   l'area à partir de laquelle on colle
+	 */
+	public static void paste(Planar<GrayU8> input, Planar<GrayU8> output, Area area) {
+		if (area.isEmpty())
+			throw new IllegalArgumentException("La zone est vide");
+		int xMin = area.getxMin();
+		int xMax = area.getxMax();
+		int yMin = area.getyMin();
+		int yMax = area.getyMax();
+		if (xMin < 0 || xMax > output.width || yMin < 0 || yMax > output.height) {
+			throw new IllegalArgumentException("Les coordonnées sont en dehors de l'image");
+		}
+		nbSteps = xMax - xMin + 1;
+		BoofConcurrency.loopFor(xMin, xMax, i -> {
+			for (int j = yMin; j <= yMax; j++) {
+				setRGBValue(output, i, j, getRGBValue(input, i - xMin, j - yMin));
+			}
+			counter.incrementAndGet();
+		});
+		counter.set(-1);
+	}
+
+	/**
 	 * 
 	 * retorune la valeur seuil d'en dessous (0-60-120-180-240-300)
 	 * 

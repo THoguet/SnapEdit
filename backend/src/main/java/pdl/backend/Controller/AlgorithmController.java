@@ -41,19 +41,23 @@ public class AlgorithmController {
 		final String[] newColors = { "RED", "GREEN", "BLUE", "YELLOW", "CYAN", "MAGENTA", "GREY" };
 		ArrayList<Algorithm> algorithms = new ArrayList<Algorithm>();
 		algorithms.add(new Algorithm("Changement de luminosité", "changeLuminosity",
-				Arrays.asList(new IntegerParameter("Delta", "delta", -255, 255, 1)),
+				Arrays.asList(new IntegerParameter("Delta", "delta", -255, 255, 1),
+						new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.changeLuminosity(input, (int) para.get(0));
 				}));
+
 		algorithms.add(new Algorithm("Changement de teinte", "colorFilter",
-				Arrays.asList(new IntegerParameter("Teinte", "hue", 0, 359, 1)),
+				Arrays.asList(new IntegerParameter("Teinte", "hue", 0, 359, 1),
+						new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.colorFilter(input, (int) para.get(0));
 				}));
 
 		algorithms.add(new Algorithm("Filtre Moyenneur", "meanFilter", Arrays.asList(
 				new IntegerParameter("Taille du filtre", "size", 1, 21, 2),
-				new SelectParameter("borderType", "Type de bordure", borderTypes)),
+				new SelectParameter("borderType", "Type de bordure", borderTypes),
+				new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.meanFilter(input, (int) para.get(0), BorderType.valueOf((String) para.get(1)));
 				}));
@@ -61,34 +65,37 @@ public class AlgorithmController {
 		algorithms.add(new Algorithm("Filtre Gaussien", "gaussienFilter", Arrays.asList(
 				new IntegerParameter("Taille du filtre", "size", 1, 21, 2),
 				new DoubleParameter("Sigma", "sigma", 0.1, 2, 0.1),
-				new SelectParameter("Type de bordure", "borderType", borderTypes)),
+				new SelectParameter("Type de bordure", "borderType", borderTypes),
+				new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.gaussienFilter(input, (int) para.get(0), (double) para.get(1),
 							BorderType.valueOf((String) para.get(2)));
 				}));
 
-		algorithms.add(new Algorithm("Détection de contours", "contours", new ArrayList<Parameter>(),
-				(Planar<GrayU8> input, List<Object> para) -> {
-					ImageProcessing.gradientImageSobel(input);
-				}));
+		algorithms.add(
+				new Algorithm("Détection de contours", "contours", Arrays.asList(new AreaParameter("Zone", "area")),
+						(Planar<GrayU8> input, List<Object> para) -> {
+							ImageProcessing.gradientImageSobel(input);
+						}));
 
-		algorithms.add(new Algorithm("Égalisation d'histogramme", "histogram", new ArrayList<Parameter>(),
+		algorithms.add(new Algorithm("Égalisation d'histogramme", "histogram",
+				Arrays.asList(new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.histogram(input);
 				}));
 
-		algorithms.add(new Algorithm("Filtre négatif", "negative", new ArrayList<Parameter>(),
+		algorithms.add(new Algorithm("Filtre négatif", "negative", Arrays.asList(new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.negativeFilter(input);
 				}));
 
-		algorithms.add(new Algorithm("Filtre sépia", "sepia", new ArrayList<Parameter>(),
+		algorithms.add(new Algorithm("Filtre sépia", "sepia", Arrays.asList(new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.sepiaFilter(input);
 				}));
 
 		algorithms.add(new Algorithm("Suppression zone", "deleteArea",
-				Arrays.asList(new AreaParameter("Zone", "area"),
+				Arrays.asList(new AreaParameter("Zone", "area", false),
 						new SelectParameter("Type de remplissage", "fillingType", fillingTypes)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.deleteArea(input, (Area) para.get(0),
@@ -102,7 +109,7 @@ public class AlgorithmController {
 				}));
 
 		algorithms.add(new Algorithm("Rognage", "crop",
-				Arrays.asList(new AreaParameter("Zone", "area")),
+				Arrays.asList(new AreaParameter("Zone", "area", false)),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.crop(input, (Area) para.get(0));
 				}));
@@ -117,6 +124,17 @@ public class AlgorithmController {
 							(String) para.get(2), (boolean) para.get(3));
 				}));
 
+		algorithms.add(new Algorithm("Saturation", "saturation",
+				Arrays.asList(new DoubleParameter("Intensité", "intensity", 0, 1, 0.05)),
+				(Planar<GrayU8> input, List<Object> para) -> {
+					ImageProcessing.saturation(input, (double) para.get(0));
+				}));
+
+		algorithms.add(new Algorithm("Vignette", "vignette",
+				Arrays.asList(new DoubleParameter("Puissance", "power", 0.05, 4, 0.05)),
+				(Planar<GrayU8> input, List<Object> para) -> {
+					ImageProcessing.vignette(input, (double) para.get(0));
+				}));
 		return algorithms;
 	}
 
