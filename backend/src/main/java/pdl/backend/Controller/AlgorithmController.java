@@ -103,7 +103,8 @@ public class AlgorithmController {
 				}));
 
 		algorithms.add(new Algorithm("Filtre de bruit", "noise",
-				Arrays.asList(new IntegerParameter("Intensité", "intensity", 1, 100, 1)),
+				Arrays.asList(new IntegerParameter("Intensité", "intensity", 1, 100, 1),
+						new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.gaussianNoiseFilter(input, (int) para.get(0));
 				}));
@@ -118,20 +119,23 @@ public class AlgorithmController {
 				Arrays.asList(new ColorParameter("Couleur à changer", "colorToChange"),
 						new IntegerParameter("Tolerance", "tolerance", 0, 255, 1),
 						new SelectParameter("Couleur de remplacement", "colorToReplace", newColors),
-						new BooleanParameter("Garder la couleur ?", "keep")),
+						new BooleanParameter("Garder la couleur ?", "keep"),
+						new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.changeColoration(input, (String) para.get(0), (int) para.get(1),
 							(String) para.get(2), (boolean) para.get(3));
 				}));
 
 		algorithms.add(new Algorithm("Saturation", "saturation",
-				Arrays.asList(new DoubleParameter("Intensité", "intensity", 0, 1, 0.05)),
+				Arrays.asList(new DoubleParameter("Intensité", "intensity", 0, 1, 0.05),
+						new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.saturation(input, (double) para.get(0));
 				}));
 
 		algorithms.add(new Algorithm("Vignette", "vignette",
-				Arrays.asList(new DoubleParameter("Puissance", "power", 0.05, 4, 0.05)),
+				Arrays.asList(new DoubleParameter("Puissance", "power", 0.05, 4, 0.05),
+						new AreaParameter("Zone", "area")),
 				(Planar<GrayU8> input, List<Object> para) -> {
 					ImageProcessing.vignette(input, (double) para.get(0));
 				}));

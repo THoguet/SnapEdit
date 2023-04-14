@@ -34,6 +34,7 @@ public class AreaParameter extends Parameter {
 
 	public ObjectNode getNode(ObjectMapper mapper) {
 		ObjectNode node = super.getNode(mapper);
+		node.put("cropImage", this.cropImage);
 		return node;
 	}
 }

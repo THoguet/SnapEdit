@@ -92,9 +92,12 @@ export class Area {
 
 export class AreaParameters extends Parameters {
 	value: Area
-	constructor(name: string, displayName: string, value: Area) {
+	cropImage: boolean
+
+	constructor(name: string, displayName: string, value: Area, cropImage: boolean = true) {
 		super(name, displayName, FilterType.select)
 		this.value = value;
+		this.cropImage = cropImage;
 	}
 }
 

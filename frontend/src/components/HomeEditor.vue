@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { defineComponent } from 'vue'
-import { Filter, FilterType, RangeParameters, SelectParameters } from '@/filter'
+import { AreaParameters, Filter, FilterType, RangeParameters, SelectParameters } from '@/filter'
 import { api } from "@/http-api";
 import CustomSelector from './CustomSelector.vue';
 
@@ -165,7 +165,9 @@ export default defineComponent({
 				<input type="color" v-model="parameter.value" />
 			</div>
 			<div v-else-if="parameter.type === FilterType.area">
-				<label> Veuillez selectioner une {{ parameter.name }}</label>
+				<label v-if="(parameter as AreaParameters).cropImage"> Vous pouvez selectionner une
+					{{ parameter.name }}</label>
+				<label v-else> Veuillez selectioner une {{ parameter.name }}</label>
 			</div>
 		</div>
 		<button :style="{ background: styledProgress() }" @mouseenter="error = areInputValid()"

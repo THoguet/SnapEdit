@@ -65,6 +65,6 @@ public class Area {
 	}
 
 	public boolean isEmpty() {
-		return xMin == 0 && yMin == 0 && xMax == 0 && yMax == 0;
+		return xMin == xMax && yMin == yMax;
 	}
 }

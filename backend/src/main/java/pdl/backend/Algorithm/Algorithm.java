@@ -30,12 +30,12 @@ public class Algorithm {
 
 	public void apply(Planar<GrayU8> image) {
 		List<Object> para = this.parameters.stream().map(p -> p.getValue()).toList();
-		boolean cropImage = false;
 		for (Object p : para) {
 			if (p == null) {
 				throw new ParameterNullPointerException("Parameter not set");
 			}
 		}
+		boolean cropImage = false;
 		for (var p : this.parameters) {
 			if (p instanceof AreaParameter) {
 				if (((AreaParameter) p).isCropImage()) {
