@@ -70,11 +70,8 @@ export default defineComponent({
 			this.$emit("applyFilter", filter);
 		},
 		areInputValid() {
-			console.log(this.filters[this.filterSelectId])
 			for (let p of this.filters[this.filterSelectId].parameters) {
-				console.log(p.path);
 				const input = document.getElementById(p.path) as HTMLInputElement;
-				console.log(input);
 				if (input !== null)
 					if (!input.checkValidity())
 						return "Paramètre(s) du filtre invalide(s)";
@@ -140,8 +137,8 @@ export default defineComponent({
 		<label>Sélectionner un filtre: </label>
 		<CustomSelector :map="convertFilters()" :selected="filterSelectId" @update-selected="filterSelectId = $event" />
 		<!-- Filter parameters -->
-		<div v-if="filters.length !== 0" v-for="parameter in filters[filterSelectId].parameters" class="rangeInput">
-			<div v-if="parameter.type === FilterType.range">
+		<div v-if="filters.length !== 0" v-for="parameter in filters[filterSelectId].parameters">
+			<div v-if="parameter.type === FilterType.range" class="rangeInput">
 				<div class="labelInput">
 					<label>{{ parameter.name }}: </label>
 					<input type="number" :min="(parameter as RangeParameters).min" :max="(parameter as RangeParameters).max"
@@ -202,6 +199,7 @@ label {
 	justify-content: center;
 	align-items: center;
 	gap: 10px;
+	flex-wrap: wrap;
 }
 
 .errorClass {
